@@ -133,6 +133,7 @@
 						/>
 					{:else}
 						<span
+                            class:done={todo.completed}
 							role="listitem"
 							on:dblclick={() => {
 								// editing
@@ -203,6 +204,10 @@
 		display: flex;
 		align-items: center;
 	}
+    ul li span.done {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
 	ul li span, ul li .edit {
 		flex: 1;
         font-size: 1rem;
