@@ -24,6 +24,11 @@ const mutators = new Client<ServerType>()
 			})
 		}
 	})
+	.mutation('todo_delete', async (tx, ids) => {
+		for (const id of ids) {
+			await TodoStore.remove(tx, id)
+		}
+	})
 	.build()
 
 export function createReplicache() {

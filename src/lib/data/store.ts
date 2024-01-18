@@ -88,9 +88,9 @@ export class Store<
 				.entries()
 				.toArray()
 
-			const [[_, pk], rawValue] = item
-			const value = structuredClone(rawValue)
-			if (!value) throw new Error('Item not found')
+			const [[_, pk]] = item
+			// const value = structuredClone(rawValue)
+			if (!pk) throw new Error('Item not found')
 			await tx.del(pk)
 		}
 

@@ -3,6 +3,7 @@
 	import type { Replicache } from 'replicache'
 	import { getReplicache } from './replicache'
 	import { onDestroy } from 'svelte'
+	import { page } from '$app/stores'
 	// export let rep: Replicache
 	const rep = getReplicache()
 	const t = TodoStore.list.watch(
@@ -11,6 +12,8 @@
 	)()
 	const ready = t.ready
 	console.log({ ready })
+
+	$: filter = $page.url.searchParams.get('filter') || 'all'
 
 	// let unsub: () => void
 	// $: {
@@ -54,7 +57,11 @@
 </form>
 
 {JSON.stringify($t)}
-{#each $t as todo}
+{#each $t.filter(todo => {
+	if (filter === 'active') return !todo.completed
+	if (filter === 'completed') return todo.completed
+	return true
+}) as todo}
 	<div>
 		<input
 			on:change={async e => {
@@ -71,5 +78,26 @@
 			checked={todo.completed}
 		/>
 		{todo.text}
+		<a href="/{todo.id}">#</a>
+		<button
+			on:click={async () => {
+				await rep.mutate.todo_delete([todo.id])
+			}}>Delete</button
+		>
 	</div>
 {/each}
+
+<p>{$t.filter(t => !t.completed).length} items left</p>
+
+{#each ['All', 'Active', 'Completed'] as filterState}
+	<a
+		href="/?filter={filterState.toLowerCase()}"
+		class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
+	>
+{/each}
+
+<style>
+	.selected {
+		outline: 1px solid #ccc;
+	}
+</style>

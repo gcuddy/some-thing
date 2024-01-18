@@ -22,3 +22,7 @@ export const updatetodo = zod(
 		// TODO: Implement
 	}
 )
+
+export const deletetodo = zod(Todo.shape.id.array(), async ids => {
+	// TODO: Implement
+})
