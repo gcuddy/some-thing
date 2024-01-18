@@ -55,7 +55,7 @@ export class Store<
 			return createGet(() => '/' + this.#get!(...args()).join('/'), rep)
 		}
 
-		result.update = async (tx: WriteTransaction, id: string, updater: (input: any) => void) => {
+		result.update = async (tx: WriteTransaction, id: string, updater: (input: any) => any) => {
 			const [item] = await tx
 				.scan({
 					indexName: 'id',
@@ -71,8 +71,10 @@ export class Store<
 			console.log('update', tx, id, updater, value)
 
 			if (!value) throw new Error('Item not found')
-			updater(value as any)
-			await tx.set(pk, value)
+			const newValue = updater(value as any)
+
+			console.log('set', pk, newValue)
+			await tx.set(pk, newValue)
 		}
 
 		result.remove = async (tx: WriteTransaction, id: string) => {
@@ -124,7 +126,7 @@ export class Store<
 					args: () => Parameters<Get>
 				) => ReturnType<typeof createGet<Item>>
 			}
-			update: (tx: WriteTransaction, id: string, updator: (item: Item) => void) => Promise<void>
+			update: (tx: WriteTransaction, id: string, updator: (item: Item) => Item) => Promise<void>
 			remove: (tx: WriteTransaction, id: string) => Promise<void>
 			put: (tx: WriteTransaction, args: Parameters<Get>, item: Partial<Item>) => Promise<void>
 		}

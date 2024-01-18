@@ -53,7 +53,7 @@
 	<button>Add</button>
 </form>
 
-<!-- {JSON.stringify($t)} -->
+{JSON.stringify($t)}
 {#each $t as todo}
 	<div>
 		<input
@@ -68,7 +68,7 @@
 				}
 			}}
 			type="checkbox"
-			checked={todo.done}
+			checked={todo.completed}
 		/>
 		{todo.text}
 	</div>

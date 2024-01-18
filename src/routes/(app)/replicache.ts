@@ -10,7 +10,7 @@ const mutators = new Client<ServerType>()
 	.mutation('todo_create', async (tx, text) => {
 		const id = Math.random().toString(36).slice(2)
 		await TodoStore.put(tx, [id], {
-			done: false,
+			completed: false,
 			id,
 			text
 		})
@@ -19,7 +19,8 @@ const mutators = new Client<ServerType>()
 		console.log('todo_update', ids, data)
 		for (const id of ids) {
 			await TodoStore.update(tx, id, todo => {
-				todo = { ...todo, ...data }
+				return { ...todo, ...data }
+				// console.log({ todo })
 			})
 		}
 	})

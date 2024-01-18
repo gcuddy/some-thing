@@ -7,6 +7,8 @@ export const Todo = z.object({
 	completed: z.boolean()
 })
 
+export type Todo = z.infer<typeof Todo>
+
 export const createtodo = zod(Todo.shape.text, async text => {
 	// TODO: Implement
 })
