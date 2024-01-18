@@ -12,7 +12,8 @@ const mutators = new Client<ServerType>()
 		await TodoStore.put(tx, [id], {
 			completed: false,
 			id,
-			text
+			text,
+			archivedAt: null
 		})
 	})
 	.mutation('todo_update', async (tx, { id: ids, data }) => {
@@ -24,9 +25,13 @@ const mutators = new Client<ServerType>()
 			})
 		}
 	})
-	.mutation('todo_delete', async (tx, ids) => {
-		for (const id of ids) {
-			await TodoStore.remove(tx, id)
+	.mutation('todo_delete', async (tx, input) => {
+		for (const id of input.ids) {
+			if (input.archive) {
+				await TodoStore.update(tx, id, todo => ({ ...todo, archivedAt: new Date() }))
+			} else {
+				await TodoStore.remove(tx, id)
+			}
 		}
 	})
 	.build()

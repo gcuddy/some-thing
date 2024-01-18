@@ -4,7 +4,8 @@ import { z } from 'zod'
 export const Todo = z.object({
 	id: z.string(),
 	text: z.string(),
-	completed: z.boolean()
+	completed: z.boolean(),
+	archivedAt: z.coerce.date().nullable().default(null)
 })
 
 export type Todo = z.infer<typeof Todo>
@@ -23,6 +24,12 @@ export const updatetodo = zod(
 	}
 )
 
-export const deletetodo = zod(Todo.shape.id.array(), async ids => {
-	// TODO: Implement
-})
+export const deletetodo = zod(
+	z.object({
+		ids: Todo.shape.id.array(),
+		archive: z.boolean().default(false).optional()
+	}),
+	async ids => {
+		// TODO: Implement
+	}
+)

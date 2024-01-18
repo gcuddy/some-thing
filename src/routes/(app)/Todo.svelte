@@ -4,97 +4,113 @@
 	import { getReplicache } from './replicache'
 	import { onDestroy } from 'svelte'
 	import { page } from '$app/stores'
+	import { derived } from 'svelte/store'
 	// export let rep: Replicache
 	const rep = getReplicache()
 	const t = TodoStore.list.watch(
 		() => rep,
 		() => []
+		// (t) => {
+		//     return t.filter(t => !t.archivedAt)
+		// }
 	)()
+	const available = derived(t, $t => $t.filter(t => !t.archivedAt))
 	const ready = t.ready
-	console.log({ ready })
 
 	$: filter = $page.url.searchParams.get('filter') || 'all'
-
-	// let unsub: () => void
-	// $: {
-	// 	unsub?.()
-	// 	rep.subscribe(
-	// 		async tx => {
-	// 			const todos = await tx.scan({ prefix: '/todo/' }).values().toArray()
-	// 			// const ids = await tx.scan().entries().toArray()
-	// 			console.log({ todos })
-	// 			return todos
-	// 			// return [todos, ids]
-	// 		},
-	// 		data => {
-	// 			console.log('onData', data)
-	// 		}
-	// 		// { scan: { prefix: 'todo/' } },
-	// 	)
-	// }
-	// onDestroy(() => {
-	// 	unsub?.()
-	// })
-	// rep.subscribe(async tx => {
-	//     const todos = await tx.scan({prefix: 'todo/'})
-	//     console.log({ todos })
-	// })
-	// const s = TodoStore.list()
-	// console.log({ s })
+	$: allFiltered = $available.every(todo => todo.completed)
 
 	let newTodo = ''
 </script>
 
-{$ready}
-<form
-	on:submit|preventDefault={async () => {
-		await rep.mutate.todo_create(newTodo)
-		newTodo = ''
-	}}
->
-	<input bind:value={newTodo} type="text" />
-	<button>Add</button>
-</form>
-
-{JSON.stringify($t)}
-{#each $t.filter(todo => {
-	if (filter === 'active') return !todo.completed
-	if (filter === 'completed') return todo.completed
-	return true
-}) as todo}
+{#if $ready}
 	<div>
-		<input
-			on:change={async e => {
-				if (e.target instanceof HTMLInputElement) {
+		{#if $available.length > 0}
+			<button
+				on:click={async () => {
 					await rep.mutate.todo_update({
-						id: [todo.id],
+						id: $available.map(t => t.id),
 						data: {
-							completed: Boolean(e.target.checked)
+							completed: !allFiltered
 						}
 					})
+				}}
+			>
+				Mark all as {allFiltered ? 'un-complete' : 'completed'}
+			</button>
+		{/if}
+		<form
+			on:submit|preventDefault={async () => {
+				const text = newTodo.trim()
+				if (text === '') {
+					return
 				}
+				await rep.mutate.todo_create(text)
+				newTodo = ''
 			}}
-			type="checkbox"
-			checked={todo.completed}
-		/>
-		{todo.text}
-		<a href="/{todo.id}">#</a>
-		<button
-			on:click={async () => {
-				await rep.mutate.todo_delete([todo.id])
-			}}>Delete</button
 		>
+			<input bind:value={newTodo} autofocus type="text" />
+			<button>Add</button>
+		</form>
+
+		<!-- {JSON.stringify($t)} -->
+		{#each $available.filter(todo => {
+			if (filter === 'active') return !todo.completed
+			if (filter === 'completed') return todo.completed
+			return true
+		}) as todo}
+			<div>
+				<input
+					on:change={async e => {
+						if (e.target instanceof HTMLInputElement) {
+							await rep.mutate.todo_update({
+								id: [todo.id],
+								data: {
+									completed: Boolean(e.target.checked)
+								}
+							})
+						}
+					}}
+					type="checkbox"
+					checked={todo.completed}
+				/>
+				{todo.text}
+				<a href="/{todo.id}">#</a>
+				<button
+					on:click={async () => {
+						await rep.mutate.todo_delete({
+							ids: [todo.id]
+						})
+					}}>Delete</button
+				>
+			</div>
+		{/each}
+
+		<p>{$available.filter(t => !t.completed).length} items left</p>
+
+		{#each ['All', 'Active', 'Completed'] as filterState}
+			<a
+				href="/?filter={filterState.toLowerCase()}"
+				class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
+			>
+		{/each}
+
+		<div>
+			{#if $available.some(t => t.completed)}
+				<button
+					on:click={async () => {
+						await rep.mutate.todo_delete({
+							ids: $available.filter(t => t.completed).map(t => t.id),
+							archive: true
+						})
+					}}
+				>
+					Clear completed
+				</button>
+			{/if}
+		</div>
 	</div>
-{/each}
-
-<p>{$t.filter(t => !t.completed).length} items left</p>
-
-{#each ['All', 'Active', 'Completed'] as filterState}
-	<a
-		href="/?filter={filterState.toLowerCase()}"
-		class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
-	>
-{/each}
+{/if}
 
 <style>
 	.selected {
