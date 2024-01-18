@@ -1,5 +1,7 @@
 name = "sk-local-server"
 
+node_compat = true
+
 [[d1_databases]]
 binding = "SK_DB"
 database_name = "sk_rep"

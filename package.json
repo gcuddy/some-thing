@@ -10,7 +10,9 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "test": "vitest",
     "lint": "prettier --check . && eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "start:wrangler": "wrangler pages dev .svelte-kit/cloudflare --compatibility-date=2024-01-02 --live-reload",
+    "start:watch": "bun run build -- -w"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240117.0",
@@ -21,6 +23,7 @@
     "@types/eslint": "8.56.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "drizzle-kit": "^0.20.13",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-svelte": "^2.35.1",
@@ -36,6 +39,9 @@
   },
   "type": "module",
   "dependencies": {
+    "drizzle-orm": "^0.29.3",
+    "drizzle-zod": "^0.5.1",
+    "nanoid": "^5.0.4",
     "replicache": "^14.0.3",
     "zod": "^3.22.4"
   }
