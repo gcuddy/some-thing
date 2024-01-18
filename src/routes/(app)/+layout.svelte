@@ -4,7 +4,7 @@
 	import '../../app.css'
 	export let data: LayoutData
 
-	if (data.replicache) setReplicache(data.replicache)
+if (data.replicache) setReplicache(data.replicache)
 </script>
 
 {#if data.replicache}
