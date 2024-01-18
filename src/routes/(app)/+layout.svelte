@@ -1,18 +1,10 @@
 <script lang="ts">
-	import { Replicache } from 'replicache';
-	import { onMount } from 'svelte';
+	import type { LayoutData } from './$types'
+	import { setReplicache } from './replicache-ctx'
 
-	let rep: Replicache;
+	export let data: LayoutData
 
-	onMount(() => {
-		rep = new Replicache({
-			name: 'user42',
-			licenseKey: 'ld43a69e6baa14a1a85eb6bb09661739e'
-		});
-
-
-        rep.experimentalWatch((c) => {
-
-        })
-	});
+	if (data.replicache) setReplicache(data.replicache)
 </script>
+
+<slot />
