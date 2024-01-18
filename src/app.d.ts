@@ -8,6 +8,9 @@ declare global {
 		// interface PageState {}
 		interface Platform {
 			// Cloudflare stuff here
+			env: {
+				SK_DB: D1Database
+			}
 		}
 	}
 }
