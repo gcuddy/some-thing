@@ -11,8 +11,12 @@ declare global {
 			env: {
 				SK_DB: D1Database
 			}
+			context: {
+				waitUntil(promise: Promise<any>): void
+			}
+			caches: CacheStorage & { default: Cache }
 		}
 	}
 }
 
-export {};
+export {}

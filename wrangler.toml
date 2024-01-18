@@ -1,0 +1,6 @@
+name = "sk-local-server"
+
+[[d1_databases]]
+binding = "SK_DB"
+database_name = "sk_rep"
+database_id = "51e74355-6cba-4b07-9f72-86d71ea1b4e4"
