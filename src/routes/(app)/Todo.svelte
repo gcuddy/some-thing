@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { TodoStore } from '$lib/data/todo'
-	import type { Replicache } from 'replicache'
 	import { getReplicache } from './replicache'
-	import { onDestroy } from 'svelte'
 	import { page } from '$app/stores'
 	import { derived } from 'svelte/store'
 	import VisuallyHidden from '$lib/components/visually-hidden.svelte'
