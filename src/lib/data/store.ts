@@ -68,6 +68,7 @@ export class Store<
 
 			const [[_, pk], rawValue] = item
 			const value = structuredClone(rawValue)
+			console.log('update', tx, id, updater, value)
 
 			if (!value) throw new Error('Item not found')
 			updater(value as any)
@@ -92,7 +93,8 @@ export class Store<
 		}
 
 		result.put = async (tx: WriteTransaction, args: any[], item: Item) => {
-			tx.set('/' + this.#get!(...args).join('/'), item as any)
+			console.log('put', tx, args, item)
+			await tx.set('/' + this.#get!(...args).join('/'), item as any)
 		}
 
 		return result as {
