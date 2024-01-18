@@ -46,6 +46,7 @@ export function createReplicache() {
 				jsonPointer: '/id'
 			}
 		},
+		pushURL: '/api/replicache-push',
 		mutators
 	})
 

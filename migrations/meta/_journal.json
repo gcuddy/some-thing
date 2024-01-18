@@ -8,6 +8,20 @@
       "when": 1705605603448,
       "tag": "0000_flashy_morph",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1705607792512,
+      "tag": "0001_futuristic_golden_guardian",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1705608200567,
+      "tag": "0002_superb_wonder_man",
+      "breakpoints": true
     }
   ]
 }

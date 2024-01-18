@@ -11,7 +11,7 @@ export class Server<Mutations> {
 		string,
 		{
 			input: ZodSchema
-			fn: (input: any) => Promise<void>
+			fn: (input: any, locals: App.Locals) => Promise<void>
 		}
 	>()
 
@@ -32,7 +32,7 @@ export class Server<Mutations> {
 
 	public expose<Name extends string, Shape extends ZodSchema, Args = z.infer<Shape>>(
 		name: Name,
-		fn: ((input: z.infer<ZodSchema>) => Promise<any>) & {
+		fn: ((input: z.infer<ZodSchema>, locals: App.Locals) => Promise<any>) & {
 			schema: Shape
 		}
 	): Server<Mutations & { [key in Name]: Mutation<Name, Args> }> {
@@ -43,10 +43,10 @@ export class Server<Mutations> {
 		return this
 	}
 
-	public execute(name: string, args: unknown) {
+	public execute(name: string, args: unknown, locals: App.Locals) {
 		const mut = this.mutations.get(name as string)
 		if (!mut) throw new Error(`Mutation "${name}" not found`)
-		return mut.fn(args)
+		return mut.fn(args, locals)
 	}
 }
 

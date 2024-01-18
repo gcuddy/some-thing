@@ -8,6 +8,9 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			DB: DrizzleD1Database
+			user?: {
+				id: string
+			}
 		}
 		// interface PageData {}
 		// interface PageState {}

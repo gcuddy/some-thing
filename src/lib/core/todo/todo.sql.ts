@@ -18,15 +18,3 @@ export const todos = sqliteTable('todos', {
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey().notNull()
 })
-
-export const replicacheClient = sqliteTable('replicache_client', {
-	id: integer('id').primaryKey(),
-	clientGroupId: text('client_group_id').notNull(),
-	lastMutationId: integer('last_mutation_id').notNull(),
-	version: integer('version').notNull()
-})
-
-export const replicacheServer = sqliteTable('replicache_server', {
-	id: integer('id').primaryKey(),
-	version: integer('version')
-})
