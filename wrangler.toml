@@ -1,6 +1,8 @@
 name = "sk-local-server"
 
 node_compat = true
+compatibility_flags = [ "nodejs_compat" ]
+
 
 [[d1_databases]]
 binding = "SK_DB"
