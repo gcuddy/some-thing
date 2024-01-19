@@ -1,8 +1,13 @@
 CREATE TABLE `replicache_client` (
-	`id` integer PRIMARY KEY NOT NULL,
+	`id` text PRIMARY KEY NOT NULL,
 	`client_group_id` text NOT NULL,
 	`last_mutation_id` integer NOT NULL,
 	`version` integer NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `replicache_client_group` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `replicache_server` (

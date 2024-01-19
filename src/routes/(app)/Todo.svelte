@@ -34,7 +34,7 @@
 					await rep.mutate.todo_update({
 						id: $available.map(t => t.id),
 						data: {
-							completed: !allFiltered
+							completed: !allFiltered ? new Date() : null
 						}
 					})
 				}}
@@ -93,13 +93,13 @@
 								await rep.mutate.todo_update({
 									id: [todo.id],
 									data: {
-										completed: Boolean(e.target.checked)
+										completed: Boolean(e.target.checked) ? new Date() : null
 									}
 								})
 							}
 						}}
 						type="checkbox"
-						checked={todo.completed}
+						checked={!!todo.completed}
 					/>
 					{#if editing === todo.id}
 						<!-- svelte-ignore a11y-autofocus -->
@@ -131,7 +131,7 @@
 						/>
 					{:else}
 						<span
-                            class:done={todo.completed}
+							class:done={todo.completed}
 							role="listitem"
 							on:dblclick={() => {
 								// editing
@@ -202,14 +202,15 @@
 		display: flex;
 		align-items: center;
 	}
-    ul li span.done {
-        text-decoration: line-through;
-        opacity: 0.5;
-    }
-	ul li span, ul li .edit {
+	ul li span.done {
+		text-decoration: line-through;
+		opacity: 0.5;
+	}
+	ul li span,
+	ul li .edit {
 		flex: 1;
-        font-size: 1rem;
-        font-family: Inter, sans-serif;
+		font-size: 1rem;
+		font-family: Inter, sans-serif;
 	}
 
 	.header input {

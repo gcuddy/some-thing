@@ -12,7 +12,9 @@
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write .",
     "start:wrangler": "wrangler pages dev .svelte-kit/cloudflare --compatibility-date=2024-01-02 --live-reload",
-    "start:watch": "bun run build -- -w"
+    "start:watch": "bun run build -- -w",
+    "drizzle:migrate": "bun drizzle/migrate.ts",
+    "drizzle:generate": "drizzle-kit generate:sqlite"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240117.0",
@@ -39,9 +41,12 @@
   },
   "type": "module",
   "dependencies": {
+    "@libsql/client": "^0.4.0-pre.7",
     "drizzle-orm": "^0.29.3",
     "drizzle-zod": "^0.5.1",
     "nanoid": "^5.0.4",
+    "pusher": "^5.2.0",
+    "pusher-js": "^8.4.0-rc2",
     "replicache": "^14.0.3",
     "zod": "^3.22.4"
   }

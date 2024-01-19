@@ -10,7 +10,7 @@ const mutators = new Client<ServerType>()
 	.mutation('todo_create', async (tx, text) => {
 		const id = Math.random().toString(36).slice(2)
 		await TodoStore.put(tx, [id], {
-			completed: false,
+			completed: null,
 			id,
 			text,
 			archivedAt: null
@@ -47,6 +47,7 @@ export function createReplicache() {
 			}
 		},
 		pushURL: '/api/replicache-push',
+		pullURL: '/api/replicache-pull',
 		mutators
 	})
 

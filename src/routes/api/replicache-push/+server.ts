@@ -3,6 +3,11 @@ import type { RequestHandler } from './$types'
 import { replicacheClient, replicacheServer } from '$lib/core/replicache/replicache.sql'
 import { eq } from 'drizzle-orm'
 import { server } from '$lib/replicache/server'
+import { user } from '$lib/core/todo/todo.sql'
+import Pusher from 'pusher'
+import { PUBLIC_PUSHER_APP_ID, PUBLIC_PUSHER_CLUSTER, PUBLIC_PUSHER_KEY } from '$env/static/public'
+import { PUSHER_SECRET } from '$env/static/private'
+
 const serverID = 1
 export const POST: RequestHandler = async ({ url, platform, request, locals }) => {
 	const push: PushRequestV1 = await request.json()
@@ -12,6 +17,22 @@ export const POST: RequestHandler = async ({ url, platform, request, locals }) =
 
 	// hopefully this exists, if not we're f***ed
 	const { DB } = locals
+
+	if (!locals.user) {
+		return new Response('Unauthorized', { status: 401 })
+	}
+
+	const u = await DB.select()
+		.from(user)
+		.where(eq(user.id, locals.user.id))
+		.then(rows => rows.at(0))
+
+	if (!u) {
+		// create user
+		await DB.insert(user).values({
+			id: locals.user.id
+		})
+	}
 
 	try {
 		// Iterate each mutation in push
@@ -59,7 +80,11 @@ export const POST: RequestHandler = async ({ url, platform, request, locals }) =
 					}
 
 					try {
-						await server.execute(mutation.name, mutation.args, locals)
+						await server.execute(mutation.name, mutation.args, {
+							DB,
+							user: locals.user!,
+							version: nextVersion
+						})
 					} catch (e) {
 						throw new Error(`Error executing mutation ${mutation.name}: ${e}`)
 					}
@@ -75,7 +100,7 @@ export const POST: RequestHandler = async ({ url, platform, request, locals }) =
 						.where(eq(replicacheClient.id, clientID))
 
 					console.log({ rows })
-					if (rows.meta.changes === 0) {
+					if (rows.rowsAffected === 0) {
 						await DB.insert(replicacheClient).values({
 							id: clientID,
 							clientGroupId: push.clientGroupID,
@@ -96,6 +121,8 @@ export const POST: RequestHandler = async ({ url, platform, request, locals }) =
 
 					// }
 				})
+
+				await poke()
 			} catch (e) {
 				console.error('Caught error from mutation', mutation, e)
 			}
@@ -104,8 +131,22 @@ export const POST: RequestHandler = async ({ url, platform, request, locals }) =
 	} catch (e) {
 		console.error(e)
 	} finally {
-		console.log('push took', Date.now() - t0)
+		console.log('push took', Date.now() - t0, 'ms')
 	}
 
 	return new Response('{}')
+}
+
+async function poke() {
+	const pusher = new Pusher({
+		appId: PUBLIC_PUSHER_APP_ID,
+		key: PUBLIC_PUSHER_KEY,
+		secret: PUSHER_SECRET,
+		cluster: PUBLIC_PUSHER_CLUSTER,
+		useTLS: true
+	})
+	const t0 = Date.now()
+
+	await pusher.trigger('default', 'poke', {})
+	console.log('Sent poke in', Date.now() - t0, 'ms')
 }
