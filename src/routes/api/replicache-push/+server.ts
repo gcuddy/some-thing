@@ -4,9 +4,10 @@ import { replicacheClient, replicacheServer } from '$lib/core/replicache/replica
 import { eq } from 'drizzle-orm'
 import { server } from '$lib/replicache/server'
 import { user } from '$lib/core/todo/todo.sql'
-import Pusher from 'pusher'
-import { PUBLIC_PUSHER_APP_ID, PUBLIC_PUSHER_CLUSTER, PUBLIC_PUSHER_KEY } from '$env/static/public'
-import { PUSHER_SECRET } from '$env/static/private'
+import { poke } from '$lib/util/pusher'
+// import Pusher from 'pusher'
+// import { PUBLIC_PUSHER_APP_ID, PUBLIC_PUSHER_CLUSTER, PUBLIC_PUSHER_KEY } from '$env/static/public'
+// import { PUSHER_SECRET } from '$env/static/private'
 
 const serverID = 1
 export const POST: RequestHandler = async ({ url, platform, request, locals }) => {
@@ -137,16 +138,16 @@ export const POST: RequestHandler = async ({ url, platform, request, locals }) =
 	return new Response('{}')
 }
 
-async function poke() {
-	const pusher = new Pusher({
-		appId: PUBLIC_PUSHER_APP_ID,
-		key: PUBLIC_PUSHER_KEY,
-		secret: PUSHER_SECRET,
-		cluster: PUBLIC_PUSHER_CLUSTER,
-		useTLS: true
-	})
-	const t0 = Date.now()
+// async function poke() {
+// 	const pusher = new Pusher({
+// 		appId: PUBLIC_PUSHER_APP_ID,
+// 		key: PUBLIC_PUSHER_KEY,
+// 		secret: PUSHER_SECRET,
+// 		cluster: PUBLIC_PUSHER_CLUSTER,
+// 		useTLS: true
+// 	})
+// 	const t0 = Date.now()
 
-	await pusher.trigger('default', 'poke', {})
-	console.log('Sent poke in', Date.now() - t0, 'ms')
-}
+// 	await pusher.trigger('default', 'poke', {})
+// 	console.log('Sent poke in', Date.now() - t0, 'ms')
+// }
