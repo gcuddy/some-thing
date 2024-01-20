@@ -47,8 +47,6 @@
     "drizzle-zod": "^0.5.1",
     "nanoid": "^5.0.4",
     "partysocket": "0.0.21",
-    "pusher": "^5.2.0",
-    "pusher-js": "^8.4.0-rc2",
     "remeda": "^1.37.0",
     "replicache": "^14.0.3",
     "zod": "^3.22.4"
