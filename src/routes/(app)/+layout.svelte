@@ -4,6 +4,9 @@
 	import '../../app.css'
 	import { onDestroy, onMount } from 'svelte'
 	import { PUBLIC_PUSHER_CLUSTER, PUBLIC_PUSHER_KEY } from '$env/static/public'
+	import { PARTYKIT_HOST, PARTYKIT_URL } from './env'
+	import { nanoid } from 'nanoid'
+	import PartySocket from 'partysocket'
 	export let data: LayoutData
 
 	if (data.replicache) setReplicache(data.replicache)
@@ -46,9 +49,35 @@
 		if (!data.replicache) return
 		Pusher = (await import('pusher-js')).default
 		setupPusher()
+
+		const conn = new PartySocket({
+			host: PARTYKIT_HOST,
+			room: 'replicache-party'
+		})
+
+		conn.addEventListener('message', event => {
+            console.log('message', event)
+			if (event.data === 'poke') {
+				if (!data.replicache) return
+				data.replicache.pull()
+			}
+		})
 	})
 </script>
 
 {#if data.replicache}
 	<slot />
 {/if}
+
+<h2>Partykit</h2>
+<button
+	on:click={async () => {
+		await fetch(`${PARTYKIT_URL}/party/${nanoid(10)}`, {
+			method: 'POST',
+			body: JSON.stringify({}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+	}}>Party</button
+>

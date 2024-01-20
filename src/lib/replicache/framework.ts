@@ -46,6 +46,7 @@ export class Server<Mutations> {
 
 	public execute(name: string, args: unknown, ctx: Ctx) {
 		const mut = this.mutations.get(name as string)
+		console.log({ mut, name, args, ctx })
 		if (!mut) throw new Error(`Mutation "${name}" not found`)
 		return mut.fn(args, ctx)
 	}
