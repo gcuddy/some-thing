@@ -3,6 +3,7 @@
 	import { TodoStore } from '$lib/data/todo'
 	import { getReplicache } from '../../replicache'
 	import autosize from '$lib/actions/autosize'
+	import { receive, send } from '$lib/util/transition'
 
 	const rep = getReplicache()
 
@@ -59,7 +60,7 @@
 </script>
 
 {#if $ready && $s}
-	<div class="max-w-4xl relative w-[calc(100%-120px)] mx-auto grow shrink-0 h-full">
+	<div class="relative mx-auto h-full w-[calc(100%-120px)] max-w-4xl shrink-0 grow">
 		<form
 			bind:this={form}
 			on:submit={async e => {
@@ -80,23 +81,25 @@
 			class="flex flex-col"
 		>
 			<div
-				class="flex items-start gap-2.5 w-full grow overflow-auto focus-within:ring-1 focus-within:ring-black/5 rounded p-4"
+				class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4 focus-within:ring-1 focus-within:ring-black/5"
 			>
 				<label class="sr-only" for="completed"> Completed </label>
 				<input
 					type="checkbox"
-					class="flex mt-2 self-start"
+					class="mt-2 flex self-start"
 					id="completed"
 					checked={!!$s?.completed}
 					name="completed"
 					on:change={handleChange}
 				/>
-				<div class="flex flex-col gap-0.5 flex-1">
+				<div class="flex flex-1 flex-col gap-0.5">
 					<input
+						in:send={{ key: `todo-${$s.id}` }}
+						out:receive={{ key: `todo-${$s.id}` }}
 						type="text"
 						on:blur={handleChange}
 						autofocus
-						class="text-xl font-medium focus-visible:ring-0 focus-visible:outline-none"
+						class="text-xl font-medium focus-visible:outline-none focus-visible:ring-0"
 						value={$s?.text}
 						name="text"
 					/>

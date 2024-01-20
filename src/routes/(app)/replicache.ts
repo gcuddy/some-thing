@@ -1,6 +1,7 @@
 import { TodoStore } from '$lib/data/todo'
 import { Client } from '$lib/replicache/framework'
 import type { ServerType } from '$lib/replicache/server'
+import { syncing } from '$lib/stores/sync'
 import { Replicache } from 'replicache'
 import { getContext, setContext } from 'svelte'
 
@@ -51,6 +52,8 @@ export function createReplicache() {
 		mutators,
 		pullInterval: 1000 * 60
 	})
+
+	replicache.onSync = s => syncing.set(s)
 
 	return replicache
 }

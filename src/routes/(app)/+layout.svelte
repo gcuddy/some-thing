@@ -5,6 +5,7 @@
 	import type { LayoutData } from './$types'
 	import { PARTYKIT_HOST } from './env'
 	import { setReplicache } from './replicache'
+	import Sidebar from '$lib/components/sidebar.svelte'
 	export let data: LayoutData
 
 	if (data.replicache) setReplicache(data.replicache)
@@ -31,10 +32,12 @@
 	})
 </script>
 
-<div class="flex w-full h-full flex-row overflow-hidden items-stretch">
-	<aside>test</aside>
+<div class="flex h-full w-full flex-row items-stretch overflow-hidden">
+	<aside class="w-60">
+		<Sidebar />
+	</aside>
 
-	<div class="py-10 flex flex-col flex-1 min-w-0">
+	<div class="flex min-w-0 flex-1 flex-col py-10">
 		{#if data.replicache}
 			<slot />
 		{/if}
@@ -53,6 +56,6 @@
 		overflow: hidden;
 	}
 	:global(body) {
-		@apply select-none cursor-default fixed w-full h-full leading-normal;
+		@apply fixed h-full w-full cursor-default select-none leading-normal;
 	}
 </style>

@@ -5,6 +5,7 @@
 	import { derived } from 'svelte/store'
 	import VisuallyHidden from '$lib/components/visually-hidden.svelte'
 	import { NoteBlank } from 'phosphor-svelte'
+	import { receive, send } from '$lib/util/transition'
 	// export let rep: Replicache
 	const rep = getReplicache()
 	const t = TodoStore.list.watch(
@@ -88,7 +89,7 @@
 				return true
 			}) as todo}
 				<li>
-					<a class="flex items-center" href="/task/{todo.id}">
+					<div class="flex items-center gap-2.5">
 						<input
 							on:change={async e => {
 								if (e.target instanceof HTMLInputElement) {
@@ -102,49 +103,58 @@
 							}}
 							type="checkbox"
 							checked={!!todo.completed}
+							class="transition active:scale-105"
 						/>
-						{#if editing === todo.id}
-							<!-- svelte-ignore a11y-autofocus -->
-							<input
-								on:keydown={e => {
-									if (e.target instanceof HTMLInputElement) {
-										if (e.key === 'Enter') {
-											e.target.blur()
-										} else if (e.key === 'Escape') {
+						<a class="flex items-center" href="/task/{todo.id}">
+							{#if editing === todo.id}
+								<!-- svelte-ignore a11y-autofocus -->
+								<input
+									on:keydown={e => {
+										if (e.target instanceof HTMLInputElement) {
+											if (e.key === 'Enter') {
+												e.target.blur()
+											} else if (e.key === 'Escape') {
+												editing = null
+											}
+										}
+									}}
+									on:blur={async e => {
+										if (e.target instanceof HTMLInputElement) {
+											await rep.mutate.todo_update({
+												id: [todo.id],
+												data: {
+													text: e.target.value
+												}
+											})
 											editing = null
 										}
-									}
-								}}
-								on:blur={async e => {
-									if (e.target instanceof HTMLInputElement) {
-										await rep.mutate.todo_update({
-											id: [todo.id],
-											data: {
-												text: e.target.value
-											}
-										})
-										editing = null
-									}
-								}}
-								type="text"
-								value={todo.text}
-								class="edit"
-								autofocus
-							/>
-						{:else}
-							<span
-								class:done={todo.completed}
-								role="listitem"
-								on:dblclick={() => {
-									// editing
-									editing = todo.id
-								}}>{todo.text}</span
-							>
-						{/if}
-						{#if !!todo.notes}
-							<NoteBlank class="ml-1.5" />
-						{/if}
-					</a>
+									}}
+									type="text"
+									value={todo.text}
+									class="edit"
+									autofocus
+								/>
+							{:else}
+								<span
+									in:send={{
+										key: `todo-${todo.id}`
+									}}
+									out:receive={{
+										key: `todo-${todo.id}`
+									}}
+									class:done={todo.completed}
+									role="listitem"
+									on:dblclick|stopPropagation|preventDefault={() => {
+										// editing
+										editing = todo.id
+									}}>{todo.text}</span
+								>
+							{/if}
+							{#if !!todo.notes}
+								<NoteBlank weight="light" class="ml-1.5 h-3.5 w-3.5 text-gray-600" />
+							{/if}
+						</a>
+					</div>
 					<!-- <a href="/task/{todo.id}">#</a>
 					<button
 						on:click={async () => {
