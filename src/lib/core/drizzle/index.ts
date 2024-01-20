@@ -9,7 +9,7 @@ import { createClient } from '@libsql/client'
 
 export function createDb(...args: Parameters<typeof createClient>) {
 	const client = createClient(...args)
-	const db = drizzle(client)
+	const db = drizzle(client, { logger: true })
 	return db
 }
 

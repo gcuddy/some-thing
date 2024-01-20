@@ -250,7 +250,7 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 					set: {
 						data: nextCvr.data
 					},
-					target: replicacheCvr.id
+					target: [replicacheCvr.id, replicacheCvr.clientGroupID]
 				})
 				.execute()
 

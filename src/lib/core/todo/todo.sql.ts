@@ -1,4 +1,4 @@
-import { timestamps } from '$lib/util/sql'
+import { timestamps } from '../../util/sql'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const todos = sqliteTable('todos', {

@@ -26,6 +26,7 @@ export const POST: RequestHandler = async ({ fetch, url, request }) => {
 				}
 			}
 		)
+        console.log('got res', res)
 
 		const ret = await res.json()
 		console.log({ url: url.toString(), ret })

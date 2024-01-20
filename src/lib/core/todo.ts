@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { todos } from './todo/todo.sql'
 import { nanoid } from 'nanoid'
 import { createSelectSchema } from 'drizzle-zod'
-import { eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import { useTransaction } from '$lib/util/transaction'
 import { useUser } from './user'
 
@@ -19,7 +19,9 @@ export const createtodo = zod(Todo.shape.text, async text =>
 		tx.insert(todos).values({
 			id: nanoid(),
 			text,
-			userId: useUser()
+			userId: useUser(),
+			timeCreated: new Date(),
+			timeUpdated: new Date()
 		})
 	)
 )
@@ -35,9 +37,9 @@ export const updatetodo = zod(
 				.update(todos)
 				.set({
 					...data,
-					userId: useUser()
+					timeUpdated: new Date()
 				})
-				.where(inArray(todos.id, id))
+				.where(and(inArray(todos.id, id), eq(todos.userId, useUser())))
 		)
 	}
 )
@@ -54,9 +56,9 @@ export const deletetodo = zod(
 			tx
 				.update(todos)
 				.set({
-					archivedAt: new Date()
+					timeDeleted: new Date()
 				})
-				.where(inArray(todos.id, ids))
+				.where(and(inArray(todos.id, ids), eq(todos.userId, useUser())))
 		)
 		// } else {
 		// 	return ctx.DB.transaction(async tx => tx.delete(todos).where(inArray(todos.id, ids)))

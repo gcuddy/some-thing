@@ -8,6 +8,7 @@ import { VisibleError } from '$lib/util/error'
 import { withUser } from '$lib/core/user'
 
 export async function handlePush(db: DB, user: { id: string }, body: PushRequestV1) {
+    console.log('hello')
 	await withUser(user, async () => {
 		for (const mutation of body.mutations) {
 			await createTransaction(db, async tx => {
@@ -62,12 +63,16 @@ export async function handlePush(db: DB, user: { id: string }, body: PushRequest
 					throw new Error(`Mutation ${mutation.id} is from the future - aborting`)
 				}
 
+                console.log('got here')
+
 				const { args, name } = mutation
 				console.log('processing', mutation.id, name)
 
 				try {
+					console.log({ name, args })
 					await server.execute(name, args)
 				} catch (ex) {
+					console.error('Error executing mutation with', { args, name }, ex)
 					if (!(ex instanceof VisibleError)) console.error(ex)
 				}
 

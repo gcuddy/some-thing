@@ -13,9 +13,9 @@ export const id = {
 export const timestamps = {
 	timeCreated: integer('time_created', { mode: 'timestamp_ms' })
 		.notNull()
-		.default(sql`strftime('%s', 'now')`),
+		.default(sql`(strftime('%s', 'now'))`),
 	timeUpdated: integer('time_updated', { mode: 'timestamp_ms' })
 		.notNull()
-		.default(sql`strftime('%s', 'now')`),
+		.default(sql`(strftime('%s', 'now'))`),
 	timeDeleted: integer('time_deleted', { mode: 'timestamp_ms' })
 }
