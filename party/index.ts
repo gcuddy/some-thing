@@ -14,6 +14,7 @@ import { and, eq, gt } from 'drizzle-orm'
 import { server } from '../src/lib/replicache/server'
 import { z } from 'zod'
 import { handlePush } from '../src/lib/replicache/push'
+import { handlePull } from '../src/lib/replicache/pull'
 
 const mutationSchema = z.object({
 	clientID: z.string(),
@@ -52,7 +53,6 @@ const pullRequestV1 = z.object({
 	schemaVersion: z.string()
 })
 
-
 const serverID = 1
 
 export default class Server implements Party.Server {
@@ -80,7 +80,7 @@ export default class Server implements Party.Server {
 				return await this.handlePush1(req)
 			}
 			if (isPull) {
-				return await this.handlePull(req)
+				return await this.handlePull1(req)
 			}
 
 			// const data = await req.json()
@@ -124,6 +124,11 @@ export default class Server implements Party.Server {
 
 	async handlePull1(request: Party.Request) {
 		const pull = pullRequestV1.parse(await request.json())
+		const user = { id: 'anon' }
+
+		const resp = await handlePull(this.db, user, pull)
+
+		return json(resp)
 	}
 
 	async handlePush(request: Party.Request) {

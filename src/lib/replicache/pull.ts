@@ -6,12 +6,13 @@ import {
 	replicacheClientGroup,
 	replicacheCvr
 } from '$lib/core/replicache/replicache.sql'
-import { and, eq, isNull, SQL, sql, type SQLWrapper } from 'drizzle-orm'
+import { and, eq, gt, inArray, isNull, lt, SQL, sql, type SQLWrapper } from 'drizzle-orm'
 import { server } from './server'
 import { VisibleError } from '$lib/util/error'
 import { withUser } from '$lib/core/user'
 import { todos } from '$lib/core/todo/todo.sql'
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core'
+import { equals, groupBy, mapValues, pipe, toPairs } from 'remeda'
 
 export const TABLES = {
 	todos
@@ -124,7 +125,8 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 				.from(table)
 				.where(
 					and(
-						eq('workspaceID' in table ? table.workspaceID : table.id, workspaceID),
+						// eq('workspaceID' in table ? table.workspaceID : table.id, workspaceID),
+						eq(table.userId, user.id),
 						...(name in tableFilters ? [tableFilters[name as keyof typeof tableFilters]] : [])
 					)
 				)
@@ -133,5 +135,147 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 			// const rows = await query.execute();
 			// results.push([name, rows]);
 		}
+
+		console.log('seperate', Date.now() - now)
+		now = Date.now()
+		const rows = await combined.execute()
+
+		results.push(
+			...pipe(
+				rows,
+				groupBy((row: any) => row.name),
+				toPairs
+			)
+		)
+		console.log('combined', Date.now() - now)
+
+		// SST does account and here too idk
+
+		for (const [name, rows] of results) {
+			const arr = []
+			for (const row of rows) {
+				const version = new Date(row.version).getTime()
+				if (cvr.data[row.key] !== version) {
+					arr.push(row)
+				}
+				delete cvr.data[row.key]
+				nextCvr.data[row.key] = version
+			}
+			toPut[name] = arr
+		}
+
+		console.log(
+			'toPut',
+			mapValues(toPut, value => value.length)
+		)
+
+		console.log('toDel', cvr.data)
+
+		// new data
+		for (const [name, items] of Object.entries(toPut)) {
+			const ids = items.map(item => item.id)
+			const keys = Object.fromEntries(items.map(item => [item.id, item.key]))
+
+			if (!ids.length) continue
+			const table = TABLES[name as keyof typeof TABLES]
+			const rows = await tx
+				.select()
+				.from(table)
+				.where(
+					and(
+						eq(table.userId, user.id),
+						// 'workspaceID' in table && actor.type === 'user'
+						// 	? eq(table.workspaceID, useWorkspace())
+						// 	: undefined,
+						inArray(table.id, ids)
+					)
+				)
+				.execute()
+			for (const row of rows) {
+				const key = keys[row.id]!
+				patch.push({
+					op: 'put',
+					key,
+					value: row as any // this yells at us because of dates
+				})
+			}
+		}
+
+		// remove deleted data
+		for (const [key] of Object.entries(cvr.data)) {
+			patch.push({
+				op: 'del',
+				key
+			})
+		}
+
+		const clients = await tx
+			.select({
+				id: replicacheClient.id,
+				mutationID: replicacheClient.mutationId,
+				clientVersion: replicacheClient.clientVersion
+			})
+			.from(replicacheClient)
+			.where(
+				and(
+					eq(replicacheClient.clientGroupId, req.clientGroupID),
+					gt(replicacheClient.clientVersion, cvr.clientVersion)
+				)
+			)
+			.execute()
+
+		const lastMutationIDChanges = Object.fromEntries(
+			clients.map(c => [c.id, c.mutationID] as const)
+		)
+
+		if (patch.length > 0 || Object.keys(lastMutationIDChanges).length > 0) {
+			console.log('inserting', req.clientGroupID)
+			await tx
+				.update(replicacheClientGroup)
+				.set({
+					cvrVersion: nextCvr.version
+				})
+				.where(eq(replicacheClientGroup.id, req.clientGroupID))
+				.execute()
+
+			await tx
+				.insert(replicacheCvr)
+				.values({
+					id: nextCvr.version,
+					data: nextCvr.data,
+					clientGroupID: req.clientGroupID,
+					clientVersion: group.clientVersion
+				})
+				.onConflictDoUpdate({
+					set: {
+						data: nextCvr.data
+					},
+					target: replicacheCvr.id
+				})
+				.execute()
+
+			await tx
+				.delete(replicacheCvr)
+				.where(
+					and(
+						eq(replicacheCvr.clientGroupID, req.clientGroupID),
+						lt(replicacheCvr.id, nextCvr.version - 10)
+					)
+				)
+
+			return {
+				patch,
+				cookie: nextCvr.version,
+				lastMutationIDChanges
+			}
+		}
+
+		return {
+			patch: [],
+			cookie: req.cookie,
+			lastMutationIDChanges
+		}
 	})
+
+	return resp
 }
