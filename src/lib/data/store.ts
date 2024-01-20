@@ -52,6 +52,7 @@ export class Store<
 		}
 
 		result.get.watch = (rep: () => Replicache, args: () => any[]) => {
+			console.log('watch', { rep }, { args })
 			return createGet(() => '/' + this.#get!(...args()).join('/'), rep)
 		}
 

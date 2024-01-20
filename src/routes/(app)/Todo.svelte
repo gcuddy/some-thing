@@ -139,8 +139,8 @@
 							}}>{todo.text}</span
 						>
 					{/if}
-
-					<a href="/{todo.id}">#</a>
+					{todo.id}
+					<a href="/task/{todo.id}">#</a>
 					<button
 						on:click={async () => {
 							await rep.mutate.todo_delete({

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import PartySocket from 'partysocket'
-	import { onDestroy, onMount } from 'svelte'
+	import { onMount } from 'svelte'
 	import '../../app.css'
 	import type { LayoutData } from './$types'
 	import { PARTYKIT_HOST } from './env'
