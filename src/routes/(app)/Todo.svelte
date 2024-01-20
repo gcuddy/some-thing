@@ -6,6 +6,8 @@
 	import VisuallyHidden from '$lib/components/visually-hidden.svelte'
 	import { NoteBlank } from 'phosphor-svelte'
 	import { receive, send } from '$lib/util/transition'
+	import { flip } from 'svelte/animate'
+	import { cubicInOut } from 'svelte/easing'
 	// export let rep: Replicache
 	const rep = getReplicache()
 	const t = TodoStore.list.watch(
@@ -87,8 +89,13 @@
 				if (filter === 'active') return !todo.completed
 				if (filter === 'completed') return todo.completed
 				return true
-			}) as todo}
-				<li>
+			}) as todo (todo.id)}
+				<li
+					animate:flip={{
+						duration: 150,
+						easing: cubicInOut
+					}}
+				>
 					<div class="flex items-center gap-2.5">
 						<input
 							on:change={async e => {
