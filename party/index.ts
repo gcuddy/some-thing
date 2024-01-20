@@ -2,6 +2,7 @@ import type * as Party from 'partykit/server'
 import { json, ok } from './utils'
 import { MutationV1, PatchOperation, PullRequestV1, PullResponse, PushRequestV1 } from 'replicache'
 import { createDb } from '../src/lib/core/drizzle/index'
+import { createTransaction } from '../src/lib/util/transaction'
 
 import {
 	replicacheServer,
@@ -11,6 +12,46 @@ import {
 import { todos } from '../src/lib/core/todo/todo.sql'
 import { and, eq, gt } from 'drizzle-orm'
 import { server } from '../src/lib/replicache/server'
+import { z } from 'zod'
+import { handlePush } from '../src/lib/replicache/push'
+
+const mutationSchema = z.object({
+	clientID: z.string(),
+	id: z.number(),
+	name: z.string(),
+	args: z.string(),
+	timestamp: z.number()
+})
+
+const pushRequestV0Schema = z.object({
+	pushVersion: z.literal(0)
+})
+
+const pushRequestV1Schema = z.object({
+	pushVersion: z.literal(1),
+	profileID: z.string(),
+	clientGroupID: z.string(),
+	mutations: z.array(mutationSchema),
+	schemaVersion: z.literal('1')
+})
+const cookieSchema = z.union([
+	z.object({
+		version: z.number(),
+		// partialSync: partialSyncStateSchema,
+		order: z.number()
+	}),
+	z.null()
+])
+
+type Cookie = z.TypeOf<typeof cookieSchema>
+const pullRequestV1 = z.object({
+	pullVersion: z.literal(1),
+	profileID: z.string(),
+	clientGroupID: z.string(),
+	cookie: cookieSchema,
+	schemaVersion: z.string()
+})
+
 
 const serverID = 1
 
@@ -36,7 +77,7 @@ export default class Server implements Party.Server {
 			const isPush = new URL(req.url).searchParams.get('push') !== null
 			const isPull = new URL(req.url).searchParams.get('pull') !== null
 			if (isPush) {
-				return await this.handlePush(req)
+				return await this.handlePush1(req)
 			}
 			if (isPull) {
 				return await this.handlePull(req)
@@ -73,6 +114,17 @@ export default class Server implements Party.Server {
 		// 	[sender.id]
 		// )
 	}
+	async handlePush1(request: Party.Request) {
+		const push = pushRequestV1Schema.parse(await request.json())
+		const user = { id: 'anon' }
+		await handlePush(this.db, user, push)
+		await this.sendPoke()
+		return new Response('{}', { status: 200 })
+	}
+
+	async handlePull1(request: Party.Request) {
+		const pull = pullRequestV1.parse(await request.json())
+	}
 
 	async handlePush(request: Party.Request) {
 		const t0 = Date.now()
@@ -80,11 +132,10 @@ export default class Server implements Party.Server {
 		// TODO: zod schema here
 		const push = await request.json<PushRequestV1>()
 
+		//    TODO: auth //
 		const userID = request.headers.get('x-user-id')
 
 		console.log({ push, userID })
-
-		// TODO: auth
 
 		for (const mutation of push.mutations) {
 			const t1 = Date.now()
@@ -292,11 +343,7 @@ export default class Server implements Party.Server {
 			if (error === undefined) {
 				console.log('Processing mutation:', JSON.stringify(mutation))
 				try {
-					await server.execute(mutation.name, mutation.args, {
-						DB: this.db,
-						user,
-						version: nextVersion
-					})
+					await server.execute(mutation.name, mutation.args)
 				} catch (e) {
 					throw new Error(`Error executing mutation ${mutation.name}: ${e}`)
 				}

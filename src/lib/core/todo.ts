@@ -4,6 +4,8 @@ import { todos } from './todo/todo.sql'
 import { nanoid } from 'nanoid'
 import { createSelectSchema } from 'drizzle-zod'
 import { eq, inArray } from 'drizzle-orm'
+import { useTransaction } from '$lib/util/transaction'
+import { useUser } from './user'
 
 export const Todo = createSelectSchema(todos, {
 	completed: z.coerce.date(),
@@ -12,31 +14,28 @@ export const Todo = createSelectSchema(todos, {
 
 export type Todo = z.infer<typeof Todo>
 
-export const createtodo = zod(Todo.shape.text, async (text, ctx) => {
-	console.log({ text, ctx })
-	return await ctx.DB.transaction(async tx =>
+export const createtodo = zod(Todo.shape.text, async text =>
+	useTransaction(tx =>
 		tx.insert(todos).values({
 			id: nanoid(),
 			text,
-			userId: ctx.user!.id,
-			version: ctx.version
+			userId: useUser()
 		})
 	)
-})
+)
 
 export const updatetodo = zod(
 	z.object({
 		id: Todo.shape.id.array(),
 		data: Todo.omit({ id: true }).partial()
 	}),
-	async ({ id, data }, ctx) => {
-		return ctx.DB.transaction(async tx =>
+	async ({ id, data }) => {
+		return useTransaction(async tx =>
 			tx
 				.update(todos)
 				.set({
 					...data,
-					userId: ctx.user!.id,
-					version: ctx.version
+					userId: useUser()
 				})
 				.where(inArray(todos.id, id))
 		)
@@ -48,15 +47,14 @@ export const deletetodo = zod(
 		ids: Todo.shape.id.array(),
 		archive: z.boolean().default(false).optional()
 	}),
-	async ({ ids, archive }, ctx) => {
+	async ({ ids, archive }) => {
 		// TODO: Implement
 		// if (archive) {
-		return ctx.DB.transaction(async tx =>
+		return useTransaction(async tx =>
 			tx
 				.update(todos)
 				.set({
-					archivedAt: new Date(),
-					version: ctx.version
+					archivedAt: new Date()
 				})
 				.where(inArray(todos.id, ids))
 		)

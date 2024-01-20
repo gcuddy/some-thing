@@ -12,3 +12,5 @@ export function createDb(...args: Parameters<typeof createClient>) {
 	const db = drizzle(client)
 	return db
 }
+
+export type DB = ReturnType<typeof createDb>

@@ -1,6 +1,5 @@
 import type { WriteTransaction } from 'replicache'
 import { ZodAny, ZodObject, ZodSchema, z } from 'zod'
-import type { Ctx } from './ctx'
 
 interface Mutation<Name extends string = string, Input = any> {
 	name: Name
@@ -12,7 +11,7 @@ export class Server<Mutations> {
 		string,
 		{
 			input: ZodSchema
-			fn: (input: any, ctx: Ctx) => Promise<void>
+			fn: (input: any) => Promise<void>
 		}
 	>()
 
@@ -33,7 +32,7 @@ export class Server<Mutations> {
 
 	public expose<Name extends string, Shape extends ZodSchema, Args = z.infer<Shape>>(
 		name: Name,
-		fn: ((input: z.infer<ZodSchema>, ctx: Ctx) => Promise<any>) & {
+		fn: ((input: z.infer<ZodSchema>) => Promise<any>) & {
 			schema: Shape
 		}
 	): Server<Mutations & { [key in Name]: Mutation<Name, Args> }> {
@@ -44,11 +43,10 @@ export class Server<Mutations> {
 		return this
 	}
 
-	public execute(name: string, args: unknown, ctx: Ctx) {
+	public execute(name: string, args: unknown) {
 		const mut = this.mutations.get(name as string)
-		console.log({ mut, name, args, ctx })
 		if (!mut) throw new Error(`Mutation "${name}" not found`)
-		return mut.fn(args, ctx)
+		return mut.fn(args)
 	}
 }
 
