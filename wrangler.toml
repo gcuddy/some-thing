@@ -2,6 +2,7 @@ name = "sk-local-server"
 
 node_compat = true
 compatibility_flags = [ "nodejs_compat" ]
+compatibility-date=2023-03-07
 
 
 [[d1_databases]]
