@@ -13,7 +13,8 @@ export const Todo = createSelectSchema(todos, {
 export type Todo = z.infer<typeof Todo>
 
 export const createtodo = zod(Todo.shape.text, async (text, ctx) => {
-	return ctx.DB.transaction(async tx =>
+	console.log({ text, ctx })
+	return await ctx.DB.transaction(async tx =>
 		tx.insert(todos).values({
 			id: nanoid(),
 			text,

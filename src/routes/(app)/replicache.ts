@@ -46,8 +46,8 @@ export function createReplicache() {
 				jsonPointer: '/id'
 			}
 		},
-		pushURL: '/api/replicache-push',
-		pullURL: '/api/replicache-pull',
+		pushURL: '/api/party?push',
+		pullURL: '/api/party?pull',
 		mutators
 	})
 

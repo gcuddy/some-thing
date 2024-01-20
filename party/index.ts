@@ -20,8 +20,8 @@ export default class Server implements Party.Server {
 	constructor(readonly room: Party.Room) {
 		// TODO: make this better
 		this.db = createDb({
-			authToken: process.env.VITE_TURSO_DB_AUTH_TOKEN as string,
-			url: process.env.VITE_TURSO_DB_URL as string
+			authToken: room.env.VITE_TURSO_DB_AUTH_TOKEN as string,
+			url: room.env.VITE_TURSO_DB_URL as string
 		})
 	}
 
@@ -36,14 +36,14 @@ export default class Server implements Party.Server {
 			const isPush = new URL(req.url).searchParams.get('push') !== null
 			const isPull = new URL(req.url).searchParams.get('pull') !== null
 			if (isPush) {
-				this.handlePush(req)
+				return await this.handlePush(req)
 			}
 			if (isPull) {
-				this.handlePull(req)
+				return await this.handlePull(req)
 			}
 
-			const data = await req.json()
-			console.log({ data })
+			// const data = await req.json()
+			// console.log({ data })
 			return ok()
 		}
 
@@ -81,6 +81,8 @@ export default class Server implements Party.Server {
 		const push = await request.json<PushRequestV1>()
 
 		const userID = request.headers.get('x-user-id')
+
+		console.log({ push, userID })
 
 		// TODO: auth
 
@@ -149,9 +151,12 @@ export default class Server implements Party.Server {
 		const fromVersion = Number(pull.cookie ?? 0)
 		const t0 = Date.now()
 
+		console.log('handlePull', { clientGroupID, fromVersion })
+
 		try {
-			this.handlePull(request)
+			return await this.processPull(clientGroupID, fromVersion)
 		} catch (e) {
+			console.log('Caught error from pull', e)
 			if (e instanceof Response) return e
 			if (e instanceof Error) return new Response(e.toString(), { status: 500 })
 
@@ -233,14 +238,19 @@ export default class Server implements Party.Server {
 		mutation: MutationV1,
 		error?: Error | string | undefined
 	) {
+		console.log('processMutation', mutation)
 		await this.db.transaction(async tx => {
 			const { clientID } = mutation
+
+			console.log('inside transaction')
 
 			let prevVersion = await tx
 				.select()
 				.from(replicacheServer)
 				.where(eq(replicacheServer.id, serverID))
 				.then(rows => rows.at(0)?.version)
+
+			console.log({ prevVersion })
 
 			if (!prevVersion) {
 				// create server real quick
@@ -255,6 +265,8 @@ export default class Server implements Party.Server {
 
 			const nextVersion = prevVersion + 1
 
+			console.log({ clientID })
+
 			const lastMutationId = await tx
 				.select({
 					lastMutationId: replicacheClient.lastMutationId
@@ -262,6 +274,8 @@ export default class Server implements Party.Server {
 				.from(replicacheClient)
 				.where(eq(replicacheClient.id, clientID))
 				.then(rows => rows.at(0)?.lastMutationId ?? 0)
+
+			console.log({ lastMutationId })
 
 			const nextMutationId = lastMutationId + 1
 
