@@ -2,6 +2,7 @@
 	import { page } from '$app/stores'
 	import { TodoStore } from '$lib/data/todo'
 	import { getReplicache } from '../../replicache'
+	import autosize from '$lib/actions/autosize'
 
 	const rep = getReplicache()
 
@@ -20,9 +21,44 @@
 	$: console.log({ $s })
 
 	let form: HTMLFormElement
+
+	async function handleChange(e: Event) {
+		if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+			const checked = Boolean(e.target.checked)
+			console.log({ checked })
+			return await rep.mutate.todo_update({
+				id: [$page.params.id],
+				data: {
+					completed: checked ? new Date() : null
+				}
+			})
+		}
+		if (
+			(e.target instanceof HTMLInputElement && e.target.type === 'text') ||
+			e.target instanceof HTMLTextAreaElement
+		) {
+			const text = String(e.target.value)
+			const key = e.target.name as 'text' | 'notes'
+
+			if (text === $s?.[key]) return console.log('no change')
+			return await rep.mutate.todo_update({
+				id: [$page.params.id],
+				data: {
+					[key]: text
+				}
+			})
+
+			// return await rep.mutate.todo_update({
+			// 	id: [$page.params.id],
+			// 	data: {
+			// 		text
+			// 	}
+			// })
+		}
+	}
 </script>
 
-{#if $ready}
+{#if $ready && $s}
 	<div class="max-w-4xl relative w-[calc(100%-120px)] mx-auto grow shrink-0 h-full">
 		<form
 			bind:this={form}
@@ -43,7 +79,9 @@
 			}}
 			class="flex flex-col"
 		>
-			<div class="flex items-start gap-2.5 w-full grow">
+			<div
+				class="flex items-start gap-2.5 w-full grow overflow-auto focus-within:ring-1 focus-within:ring-black/5 rounded p-4"
+			>
 				<label class="sr-only" for="completed"> Completed </label>
 				<input
 					type="checkbox"
@@ -51,10 +89,25 @@
 					id="completed"
 					checked={!!$s?.completed}
 					name="completed"
+					on:change={handleChange}
 				/>
-				<div class="flex flex-col flex-1">
-					<input type="text" class="text-xl font-medium" value={$s?.text} name="text" />
-					<textarea placeholder="Notes" />
+				<div class="flex flex-col gap-0.5 flex-1">
+					<input
+						type="text"
+						on:blur={handleChange}
+						autofocus
+						class="text-xl font-medium focus-visible:ring-0 focus-visible:outline-none"
+						value={$s?.text}
+						name="text"
+					/>
+					<textarea
+						value={$s?.notes}
+						name="notes"
+						use:autosize
+						on:blur={handleChange}
+						placeholder="Notes"
+						class="focus-visible:outline-none"
+					/>
 				</div>
 			</div>
 
