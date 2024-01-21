@@ -33,7 +33,7 @@
 </script>
 
 <div class="flex h-full w-full flex-row items-stretch overflow-hidden">
-	<aside class="w-60">
+	<aside class="w-60 max-sm:hidden">
 		<Sidebar />
 	</aside>
 
