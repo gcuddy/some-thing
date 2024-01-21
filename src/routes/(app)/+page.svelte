@@ -2,26 +2,19 @@
 	import { getContext } from 'svelte'
 	import Todo from './Todo.svelte'
 	import type { Replicache } from 'replicache'
+	import type { Snapshot } from './$types'
 	const rep = getContext('__replicache') as Replicache
 	console.log({ rep })
+
+	let todo: Todo
+
+	export const snapshot: Snapshot = {
+		capture: () => todo.snapshot.capture(),
+		restore: data => todo.snapshot.restore(data)
+	}
 </script>
 
-<div class="wrapper">
+<div class="mx-auto w-[calc(100%-120px)] max-w-screen-lg">
 	<!-- <h1>todos</h1> -->
-	<Todo />
+	<Todo bind:this={todo} />
 </div>
-
-<style>
-	.wrapper {
-		margin: 0 auto;
-		max-width: 35rem;
-		width: 100%;
-	}
-	.wrapper h1 {
-		font-size: 3rem;
-		font-weight: 500;
-		text-align: center;
-		letter-spacing: -0.02em;
-		/* color: #ff2d55; */
-	}
-</style>

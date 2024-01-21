@@ -17,7 +17,7 @@
 }
 
 input[type='checkbox'] {
-	@apply relative h-3.5 w-3.5 appearance-none rounded border border-gray-300;
+	@apply relative h-3.5 w-3.5 appearance-none rounded border border-gray-400;
 }
 
 input[type='checkbox']:checked {

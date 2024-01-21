@@ -8,6 +8,11 @@
 	import { receive, send } from '$lib/util/transition'
 	import { flip } from 'svelte/animate'
 	import { cubicInOut } from 'svelte/easing'
+	import {
+		createKeyboardNavigator,
+		setKeyboardNavigatorContext
+	} from '$lib/actions/keyboard-navigator'
+	import type { Snapshot } from './$types'
 	// export let rep: Replicache
 	const rep = getReplicache()
 	const t = TodoStore.list.watch(
@@ -27,7 +32,59 @@
 	$: allFiltered = $available.every(todo => todo.completed)
 
 	let newTodo = ''
+
+	function handleKeydown(e: KeyboardEvent) {}
+
+	let initialFocusId: string | null = null
+
+	export const snapshot: Snapshot = {
+		capture() {
+			const focused = navigator.focused
+			console.log({ focused })
+			if (focused) {
+				return focused.dataset.todoId ?? null
+			}
+		},
+		restore(id: string) {
+			console.log({ id })
+			if (id) {
+				initialFocusId = id
+			}
+		}
+	}
+
+	let ul: HTMLUListElement
+
+	$: if (initialFocusId && ul) {
+		const el = ul.querySelector(`li[data-todo-id="${initialFocusId}"]`)
+		console.log({ el })
+		if (el instanceof HTMLElement) {
+			navigator.focus(el)
+		}
+		initialFocusId = null
+	}
+
+	const navigator = createKeyboardNavigator({
+		target: "li[data-element='todo']",
+		onSelect: el => el.querySelector('a')?.click(),
+		onKeydown: async (e, el) => {
+			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault()
+				console.log({ el })
+				await rep.mutate.todo_update({
+					id: [el.dataset.todoId!],
+					data: {
+						completed: Boolean(el.dataset.completed) ? null : new Date()
+					}
+				})
+				return true
+			}
+		}
+	})
+	setKeyboardNavigatorContext(navigator)
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 {#if $ready}
 	<div>
@@ -78,19 +135,31 @@
 					newTodo = ''
 				}}
 			>
-				<input placeholder="What needs to be done?" bind:value={newTodo} autofocus type="text" />
+				<input placeholder="What needs to be done?" bind:value={newTodo} type="text" />
 				<!-- <button>Add</button> -->
 			</form>
 		</div>
 
 		<!-- {JSON.stringify($t)} -->
-		<ul>
+		<ul bind:this={ul}>
 			{#each $available.filter(todo => {
 				if (filter === 'active') return !todo.completed
 				if (filter === 'completed') return todo.completed
 				return true
 			}) as todo (todo.id)}
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 				<li
+					on:click={e => {
+						// if (e.target instanceof HTMLInputElement) {
+						// 	return
+						// }
+						navigator.focus(e.currentTarget)
+					}}
+					data-element="todo"
+					data-todo-id={todo.id}
+					data-completed={todo.completed ? 'true' : undefined}
+					class="rounded px-2 py-1 data-[focus=true]:bg-blue-200"
 					animate:flip={{
 						duration: 150,
 						easing: cubicInOut
@@ -143,12 +212,6 @@
 								/>
 							{:else}
 								<span
-									in:send={{
-										key: `todo-${todo.id}`
-									}}
-									out:receive={{
-										key: `todo-${todo.id}`
-									}}
 									class:done={todo.completed}
 									role="listitem"
 									on:dblclick|stopPropagation|preventDefault={() => {
