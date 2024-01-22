@@ -23,7 +23,16 @@
 		// }
 	)()
 	$: console.log({ $t })
-	const available = derived(t, $t => $t.filter(t => !t.archivedAt))
+	const available = derived(t, $t =>
+		$t
+			.filter(t => !t.archivedAt)
+			.sort((a, b) => {
+				const aIndex = a.index ?? 0
+				const bIndex = b.index ?? 0
+				if (aIndex === bIndex) return 0
+				return aIndex > bIndex ? 1 : -1
+			})
+	)
 	const ready = t.ready
 
 	let editing: null | string = null
@@ -131,7 +140,12 @@
 					if (text === '') {
 						return
 					}
-					await rep.mutate.todo_create(text)
+					console.log({ $available })
+					const minIndex = $available[0]?.index ?? 0
+					console.log({ minIndex })
+					const index = minIndex - 1
+					console.log({ index })
+					await rep.mutate.todo_create({ text, index })
 					newTodo = ''
 				}}
 			>
@@ -220,6 +234,7 @@
 									}}>{todo.text}</span
 								>
 							{/if}
+
 							{#if !!todo.notes}
 								<NoteBlank weight="light" class="ml-1.5 h-3.5 w-3.5 text-gray-600" />
 							{/if}

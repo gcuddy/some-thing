@@ -9,6 +9,8 @@ export const todos = sqliteTable('todos', {
 	archivedAt: integer('archived_at', { mode: 'timestamp_ms' }),
 	notes: text('notes'),
 
+	index: integer('index').default(0),
+
 	// TODO: parent
 	// TODO: tags
 

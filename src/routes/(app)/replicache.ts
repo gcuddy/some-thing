@@ -2,19 +2,37 @@ import { TodoStore } from '$lib/data/todo'
 import { Client } from '$lib/replicache/framework'
 import type { ServerType } from '$lib/replicache/server'
 import { syncing } from '$lib/stores/sync'
+import { createId } from '$lib/util/nanoid'
 import { Replicache } from 'replicache'
 import { getContext, setContext } from 'svelte'
 
 const s = '__replicache'
 
 const mutators = new Client<ServerType>()
-	.mutation('todo_create', async (tx, text) => {
-		const id = Math.random().toString(36).slice(2)
+	.mutation('todo_create', async (tx, data) => {
+		const id = data.id ?? createId()
+		const todos = await TodoStore.list(tx)
+
+		console.log('todo_create', { id, data, todos })
+		//  get min index
+		const index =
+			data.index ??
+			todos.reduce((min, todo) => {
+				const index = todo.index ?? 0
+				if (index < min) {
+					return index
+				}
+				return min
+			}, 0) - 1
+
+		console.log('mutator', { index })
+
 		await TodoStore.put(tx, [id], {
 			completed: null,
 			id,
-			text,
-			archivedAt: null
+			text: data.text,
+			archivedAt: null,
+			index
 		})
 	})
 	.mutation('todo_update', async (tx, { id: ids, data }) => {

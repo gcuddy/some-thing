@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { todos } from './todo/todo.sql'
 import { nanoid } from 'nanoid'
 import { createSelectSchema } from 'drizzle-zod'
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { useTransaction } from '$lib/util/transaction'
 import { useUser } from './user'
 
@@ -14,16 +14,24 @@ export const Todo = createSelectSchema(todos, {
 
 export type Todo = z.infer<typeof Todo>
 
-export const createtodo = zod(Todo.shape.text, async text =>
-	useTransaction(tx =>
-		tx.insert(todos).values({
-			id: nanoid(),
-			text,
-			userId: useUser(),
-			timeCreated: new Date(),
-			timeUpdated: new Date()
-		})
-	)
+export const createtodo = zod(
+	Todo.partial().required({
+		text: true
+		// index: true
+	}),
+	async data =>
+		// TODO: should this take an index value? or should it default to lowest
+		useTransaction(tx =>
+			tx.insert(todos).values({
+				id: nanoid(),
+				text: data.text,
+				userId: useUser(),
+				timeCreated: new Date(),
+				timeUpdated: new Date(),
+				index: data.index
+				// index: tx.select({ index: todos.index }).from(todos).where(eq(todos.userId, useUser())).min().add(-1)
+			})
+		)
 )
 
 export const updatetodo = zod(
