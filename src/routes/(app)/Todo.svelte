@@ -341,7 +341,7 @@
 	}}
 >
 	<!-- Move to provider -->
-	<Dialog.Content class="">
+	<Dialog.Content class="p-0">
 		<TodoDetail
 			data={{
 				replicache: rep,

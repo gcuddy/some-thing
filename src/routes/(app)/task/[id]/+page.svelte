@@ -5,7 +5,7 @@
 	import autosize from '$lib/actions/autosize'
 	import { receive, send } from '$lib/util/transition'
 
-    export let data;
+	export let data
 
 	const rep = getReplicache()
 
@@ -62,7 +62,7 @@
 </script>
 
 {#if $ready && $s}
-	<div class="relative mx-auto h-full w-[calc(100%-120px)] max-w-4xl shrink-0 grow">
+
 		<form
 			bind:this={form}
 			on:submit={async e => {
@@ -82,9 +82,7 @@
 			}}
 			class="flex flex-col"
 		>
-			<div
-				class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4 focus-within:ring-1 focus-within:ring-black/5"
-			>
+			<div class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4">
 				<label class="sr-only" for="completed"> Completed </label>
 				<input
 					type="checkbox"
@@ -122,5 +120,4 @@
 				<button>Save</button>
 			</noscript>
 		</form>
-	</div>
 {/if}
