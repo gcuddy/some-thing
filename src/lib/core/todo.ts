@@ -14,27 +14,38 @@ export const Todo = createSelectSchema(todos, {
 
 export type Todo = z.infer<typeof Todo>
 
-export const createtodo = zod(
-	Todo.partial().required({
-		text: true
-		// index: true
-	}),
-	async data =>
-		// TODO: should this take an index value? or should it default to lowest
-		useTransaction(tx =>
-			tx.insert(todos).values({
-				id: nanoid(),
-				text: data.text,
-				userId: useUser(),
-				timeCreated: new Date(),
-				timeUpdated: new Date(),
-				index: data.index
-				// index: tx.select({ index: todos.index }).from(todos).where(eq(todos.userId, useUser())).min().add(-1)
-			})
-		)
+const insertTodoSchema = Todo.partial().required({ text: true })
+
+export const create = zod(insertTodoSchema, async data =>
+	// TODO: should this take an index value? or should it default to lowest
+	useTransaction(tx =>
+		tx.insert(todos).values({
+			id: data.id ?? nanoid(),
+			text: data.text,
+			userId: useUser(),
+			timeCreated: new Date(),
+			timeUpdated: new Date(),
+			index: data.index
+			// index: tx.select({ index: todos.index }).from(todos).where(eq(todos.userId, useUser())).min().add(-1)
+		})
+	)
 )
 
-export const updatetodo = zod(
+export const createMany = zod(z.array(insertTodoSchema), async data =>
+	useTransaction(tx =>
+		tx.insert(todos).values(
+			data.map(x => ({
+				id: nanoid(),
+				timeCreated: new Date(),
+				timeUpdated: new Date(),
+				userId: useUser(),
+				...x
+			}))
+		)
+	)
+)
+
+export const update = zod(
 	z.object({
 		id: Todo.shape.id.array(),
 		data: Todo.omit({ id: true }).partial()
@@ -52,7 +63,7 @@ export const updatetodo = zod(
 	}
 )
 
-export const deletetodo = zod(
+export const remove = zod(
 	z.object({
 		ids: Todo.shape.id.array(),
 		archive: z.boolean().default(false).optional()

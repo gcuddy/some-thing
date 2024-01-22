@@ -9,6 +9,18 @@ import { getContext, setContext } from 'svelte'
 const s = '__replicache'
 
 const mutators = new Client<ServerType>()
+	.mutation('todo_createmany', async (tx, data) => {
+		for (const todo of data) {
+			const id = todo.id ?? createId()
+			console.log({ id })
+			await TodoStore.put(tx, [id], {
+				completed: null,
+				archivedAt: null,
+				id,
+				...todo
+			})
+		}
+	})
 	.mutation('todo_create', async (tx, data) => {
 		const id = data.id ?? createId()
 		const todos = await TodoStore.list(tx)

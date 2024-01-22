@@ -16,6 +16,8 @@
 	import { goto, preloadData, pushState } from '$app/navigation'
 	import * as Dialog from '$lib/components/ui/dialog'
 	import { fade, fly, scale } from 'svelte/transition'
+	import { processTasksFromText } from '@/util/text'
+	import { distributeItems } from '@/util/number'
 	// export let rep: Replicache
 	const rep = getReplicache()
 	const t = TodoStore.list.watch(
@@ -130,10 +132,59 @@
 	setKeyboardNavigatorContext(navigator)
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window
+	on:keydown={handleKeydown}
+	on:paste={async e => {
+		console.log('paste')
+		const text = e.clipboardData?.getData('text/plain')?.trim()
+		if (text) {
+			// process
+			const tasks = processTasksFromText(text)
+			if (!tasks.length) return
+			const f = navigator.focused?.dataset.todoId
+			if (!f) {
+				// then we're at the top - insert at the top
+				const minIndex = $available[0]?.index ?? 0
+				const index = minIndex - 1000
+				const distribution = distributeItems(index, minIndex, tasks.length)
+				console.log({ distribution })
+				const data = tasks.map((task, i) => {
+					return {
+						text: task,
+						index: distribution[i]
+					}
+				})
+				console.log({ data })
+				return await rep.mutate.todo_createmany(data)
+			}
+			const currentIndex = f ? $available.findIndex(t => t.id === f) : 0
+			const minIndex = f ? $available.findIndex(t => t.id === f) : $available[0]?.index ?? 0
+			const maxIndex =
+				currentIndex + 1 < $available.length ? $available[currentIndex + 1].index ?? 0 : 1000
 
+			if (maxIndex - minIndex < tasks.length) {
+				// then we're f**ked - we need to shift indexes
+				// TODO
+				console.log('TODO - shift indexes')
+			}
+
+			const distribution = distributeItems(minIndex, maxIndex, tasks.length)
+			console.log({ distribution })
+			const data = tasks.map((task, i) => {
+				return {
+					text: task,
+					index: distribution[i]
+				}
+			})
+			console.log({ data })
+			return await rep.mutate.todo_createmany(data)
+			//    const maxIndex =
+			// try to find the first index that is not taken
+		}
+	}}
+/>
 {#if $ready}
-	<div>
+	<div class="overflow-y-auto">
 		<div class="header">
 			<button
 				disabled={!$available.length}
@@ -180,7 +231,7 @@
 					console.log({ $available })
 					const minIndex = $available[0]?.index ?? 0
 					console.log({ minIndex })
-					const index = minIndex - 1
+					const index = minIndex - 100
 					console.log({ index })
 					await rep.mutate.todo_create({ text, index })
 					newTodo = ''
