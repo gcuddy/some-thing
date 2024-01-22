@@ -14,7 +14,7 @@
 	}
 </script>
 
-<div class="mx-auto w-[calc(100%-120px)] max-w-screen-lg">
+<div class="grow mx-auto w-[calc(100%-120px)] max-w-screen-lg">
 	<!-- <h1>todos</h1> -->
 	<Todo bind:this={todo} />
 </div>

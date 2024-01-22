@@ -37,7 +37,7 @@
 		<Sidebar />
 	</aside>
 
-	<div class="flex min-w-0 flex-1 flex-col py-10">
+	<div class="flex min-w-0 flex-1 flex-col pt-10">
 		{#if data.replicache}
 			<slot />
 		{/if}

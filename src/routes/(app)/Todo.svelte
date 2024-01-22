@@ -1,23 +1,24 @@
 <script lang="ts">
-	import { TodoStore } from '$lib/data/todo'
-	import { getReplicache } from './replicache'
+	import { goto, preloadData, pushState } from '$app/navigation'
 	import { page } from '$app/stores'
-	import { derived } from 'svelte/store'
-	import VisuallyHidden from '$lib/components/visually-hidden.svelte'
-	import { NoteBlank } from 'phosphor-svelte'
-	import TodoDetail from './task/[id]/+page.svelte'
-	import { flip } from 'svelte/animate'
-	import { cubicInOut } from 'svelte/easing'
 	import {
 		createKeyboardNavigator,
 		setKeyboardNavigatorContext
 	} from '$lib/actions/keyboard-navigator'
-	import type { Snapshot } from './$types'
-	import { goto, preloadData, pushState } from '$app/navigation'
 	import * as Dialog from '$lib/components/ui/dialog'
-	import { fade, fly, scale } from 'svelte/transition'
-	import { processTasksFromText } from '@/util/text'
+	import VisuallyHidden from '$lib/components/visually-hidden.svelte'
+	import { TodoStore } from '$lib/data/todo'
 	import { distributeItems } from '@/util/number'
+	import { processTasksFromText } from '@/util/text'
+	import { createVirtualizer } from '@tanstack/svelte-virtual'
+	import { NoteBlank } from 'phosphor-svelte'
+	import { flip } from 'svelte/animate'
+	import { cubicInOut } from 'svelte/easing'
+	import { derived } from 'svelte/store'
+	import type { Snapshot } from './$types'
+	import { getReplicache } from './replicache'
+	import TodoDetail from './task/[id]/+page.svelte'
+
 	// export let rep: Replicache
 	const rep = getReplicache()
 	const t = TodoStore.list.watch(
@@ -31,16 +32,30 @@
 	const available = derived(t, $t =>
 		$t
 			.filter(t => !t.archivedAt)
+			.filter(todo => {
+				if (filter === 'active') return !todo.completed
+				if (filter === 'completed') return todo.completed
+				return true
+			})
 			.sort((a, b) => {
 				const aIndex = a.index ?? 0
 				const bIndex = b.index ?? 0
-				if (aIndex === bIndex) return 0
+				if (aIndex === bIndex) return a.timeCreated > b.timeCreated ? 1 : -1
 				return aIndex > bIndex ? 1 : -1
 			})
 	)
 	const ready = t.ready
 
 	let editing: null | string = null
+
+	let virtualListEl: HTMLDivElement
+	$: virtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
+		count: $available.length,
+		getScrollElement: () => virtualListEl,
+		estimateSize: () => 35,
+		overscan: 5,
+		getItemKey: index => $available[index].id
+	})
 
 	$: filter = $page.url.searchParams.get('filter') || 'all'
 	$: allFiltered = $available.every(todo => todo.completed)
@@ -82,7 +97,20 @@
 		initialFocusId = null
 	}
 
-	let contentRect: DOMRectReadOnly | null = null
+	let headerContentRect: DOMRectReadOnly
+	let footerContentRect: DOMRectReadOnly
+	$: console.log({ headerContentRect, footerContentRect })
+
+	let wrapper: HTMLDivElement
+
+	function calculateVirtualListHeight() {
+		console.log('calculating')
+		return (
+			innerHeight - 40 - (headerContentRect?.height ?? 0) - (footerContentRect?.height ?? 0) + 'px'
+		)
+	}
+	$: virtualListHeight =
+		innerHeight - 40 - (headerContentRect?.height ?? 0) - (footerContentRect?.height ?? 0) + 'px'
 
 	const navigator = createKeyboardNavigator({
 		target: "li[data-element='todo']",
@@ -135,6 +163,9 @@
 </script>
 
 <svelte:window
+	on:resize={() => {
+		virtualListHeight = calculateVirtualListHeight()
+	}}
 	on:keydown={handleKeydown}
 	on:paste={async e => {
 		console.log('paste')
@@ -186,8 +217,8 @@
 	}}
 />
 {#if $ready}
-	<div class="overflow-y-auto">
-		<div class="header">
+	<div bind:this={wrapper} class="flex h-full grow flex-col">
+		<div class="header" bind:contentRect={headerContentRect}>
 			<button
 				disabled={!$available.length}
 				on:click={async () => {
@@ -245,117 +276,123 @@
 		</div>
 
 		<!-- {JSON.stringify($t)} -->
-		<div bind:contentRect>
-			<ul class="overflow-auto" style:height="{contentRect?.height}px" bind:this={ul}>
-				{#each $available.filter(todo => {
-					if (filter === 'active') return !todo.completed
-					if (filter === 'completed') return todo.completed
-					return true
-				}) as todo (todo.id)}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-					<li
-						on:click={e => {
-							// if (e.target instanceof HTMLInputElement) {
-							// 	return
-							// }
-							if (e.shiftKey) {
-								navigator.selectAdjacent(e.currentTarget)
-							} else {
-								navigator.focus(e.currentTarget)
-							}
-						}}
-						data-element="todo"
-						data-todo-id={todo.id}
-						data-completed={todo.completed ? 'true' : undefined}
-						class="rounded px-2 py-1 data-[focus=true]:bg-blue-200 data-[selected=true]:bg-blue-100"
-						animate:flip={{
-							duration: 150,
-							easing: cubicInOut
-						}}
-					>
-						<div class="flex items-center gap-2.5">
-							<input
-								on:change={async e => {
-									if (e.target instanceof HTMLInputElement) {
-										await rep.mutate.todo_update({
-											id: [todo.id],
-											data: {
-												completed: Boolean(e.target.checked) ? new Date() : null
-											}
-										})
+		<div class="relative flex h-full grow flex-col items-stretch overflow-hidden">
+			<div class="flex h-full flex-auto flex-col overflow-hidden">
+				<!-- This is goofy as hell, gotta be a better way... -->
+				<div
+					bind:this={virtualListEl}
+					style:height={virtualListHeight}
+					class="relative w-full overflow-auto will-change-transform"
+				>
+					<ul bind:this={ul} class="relative w-full" style:height="{$virtualizer.getTotalSize()}px">
+						{#each $virtualizer.getVirtualItems() as row (row.key)}
+							{@const todo = $available[row.index]}
+							<!-- svelte-ignore a11y-click-events-have-key-events -->
+							<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+							<li
+								on:click={e => {
+									// if (e.target instanceof HTMLInputElement) {
+									// 	return
+									// }
+									if (e.shiftKey) {
+										navigator.selectAdjacent(e.currentTarget)
+									} else {
+										navigator.focus(e.currentTarget)
 									}
 								}}
-								type="checkbox"
-								checked={!!todo.completed}
-								class="transition active:scale-105"
-							/>
-							<a
-								class="flex cursor-default items-center"
-								href="/task/{todo.id}"
-								on:click={async e => {
-									// if opening new tab or screen is too small, bail
-									if (e.metaKey || e.ctrlKey || innerWidth < 640) return
-									e.preventDefault()
-
-									const { href } = e.currentTarget
-
-									// run `load` functions (or rather, get the result of the `load` functions
-									// that are already running because of `data-sveltekit-preload-data`)
-									const result = await preloadData(href)
-
-									if (result.type === 'loaded' && result.status === 200) {
-										pushState(href, { selected: result.data.id })
-									} else {
-										goto(href)
-									}
+								data-element="todo"
+								data-todo-id={todo.id}
+								data-completed={todo.completed ? 'true' : undefined}
+								class="absolute left-0 top-0 w-full rounded px-2 py-1 data-[focus=true]:bg-blue-200 data-[selected=true]:bg-blue-100"
+								style:height="{row.size}px"
+								style:transform="translateY({row.start}px)"
+								animate:flip={{
+									duration: 150,
+									easing: cubicInOut
 								}}
 							>
-								{#if editing === todo.id}
-									<!-- svelte-ignore a11y-autofocus -->
+								<div class="flex items-center gap-2.5">
 									<input
-										on:keydown={e => {
-											if (e.target instanceof HTMLInputElement) {
-												if (e.key === 'Enter') {
-													e.target.blur()
-												} else if (e.key === 'Escape') {
-													editing = null
-												}
-											}
-										}}
-										on:blur={async e => {
+										on:change={async e => {
 											if (e.target instanceof HTMLInputElement) {
 												await rep.mutate.todo_update({
 													id: [todo.id],
 													data: {
-														text: e.target.value
+														completed: Boolean(e.target.checked) ? new Date() : null
 													}
 												})
-												editing = null
 											}
 										}}
-										type="text"
-										value={todo.text}
-										class="edit"
-										autofocus
+										type="checkbox"
+										checked={!!todo.completed}
+										class="transition active:scale-105"
 									/>
-								{:else}
-									<span
-										class:done={todo.completed}
-										role="listitem"
-										on:dblclick|stopPropagation|preventDefault={() => {
-											// editing
-											editing = todo.id
-										}}>{todo.text}</span
-									>
-								{/if}
+									<a
+										class="flex cursor-default items-center"
+										href="/task/{todo.id}"
+										on:click={async e => {
+											// if opening new tab or screen is too small, bail
+											if (e.metaKey || e.ctrlKey || innerWidth < 640) return
+											e.preventDefault()
 
-								{#if !!todo.notes}
-									<NoteBlank weight="light" class="ml-1.5 h-3.5 w-3.5 text-gray-600" />
-								{/if}
-							</a>
-						</div>
-						<!-- <a href="/task/{todo.id}">#</a>
+											const { href } = e.currentTarget
+
+											// run `load` functions (or rather, get the result of the `load` functions
+											// that are already running because of `data-sveltekit-preload-data`)
+											const result = await preloadData(href)
+
+											if (result.type === 'loaded' && result.status === 200) {
+												pushState(href, { selected: result.data.id })
+											} else {
+												goto(href)
+											}
+										}}
+									>
+										{#if editing === todo.id}
+											<!-- svelte-ignore a11y-autofocus -->
+											<input
+												on:keydown={e => {
+													if (e.target instanceof HTMLInputElement) {
+														if (e.key === 'Enter') {
+															e.target.blur()
+														} else if (e.key === 'Escape') {
+															editing = null
+														}
+													}
+												}}
+												on:blur={async e => {
+													if (e.target instanceof HTMLInputElement) {
+														await rep.mutate.todo_update({
+															id: [todo.id],
+															data: {
+																text: e.target.value
+															}
+														})
+														editing = null
+													}
+												}}
+												type="text"
+												value={todo.text}
+												class="edit"
+												autofocus
+											/>
+										{:else}
+											<span
+												class:done={todo.completed}
+												role="listitem"
+												on:dblclick|stopPropagation|preventDefault={() => {
+													// editing
+													editing = todo.id
+												}}>{todo.text}</span
+											>
+										{/if}
+
+										{#if !!todo.notes}
+											<NoteBlank weight="light" class="ml-1.5 h-3.5 w-3.5 text-gray-600" />
+										{/if}
+									</a>
+								</div>
+								<!-- <a href="/task/{todo.id}">#</a>
 					<button
 						on:click={async () => {
 							await rep.mutate.todo_delete({
@@ -363,32 +400,36 @@
 							})
 						}}>Delete</button
 					> -->
-					</li>
-				{/each}
-			</ul>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			</div>
 		</div>
-		<p>{$available.filter(t => !t.completed).length} items left</p>
+		<div class="footer" bind:contentRect={footerContentRect}>
+			<p>{$available.filter(t => !t.completed).length} items left</p>
 
-		{#each ['All', 'Active', 'Completed'] as filterState}
-			<a
-				href="/?filter={filterState.toLowerCase()}"
-				class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
-			>
-		{/each}
-
-		<div>
-			{#if $available.some(t => t.completed)}
-				<button
-					on:click={async () => {
-						await rep.mutate.todo_delete({
-							ids: $available.filter(t => t.completed).map(t => t.id),
-							archive: true
-						})
-					}}
+			{#each ['All', 'Active', 'Completed'] as filterState}
+				<a
+					href="/?filter={filterState.toLowerCase()}"
+					class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
 				>
-					Clear completed
-				</button>
-			{/if}
+			{/each}
+
+			<div>
+				{#if $available.some(t => t.completed)}
+					<button
+						on:click={async () => {
+							await rep.mutate.todo_delete({
+								ids: $available.filter(t => t.completed).map(t => t.id),
+								archive: true
+							})
+						}}
+					>
+						Clear completed
+					</button>
+				{/if}
+			</div>
 		</div>
 	</div>
 {/if}
