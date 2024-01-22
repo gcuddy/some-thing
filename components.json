@@ -8,6 +8,6 @@
 	},
 	"aliases": {
 		"components": "$lib/components",
-		"utils": "$lib/util/transition"
+		"utils": "$lib/util/style"
 	}
 }

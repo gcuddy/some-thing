@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Dialog as DialogPrimitive } from "bits-ui";
-	import { cn } from "$lib/util/transition";
+	import { cn } from "$lib/util/style";
 
 	type $$Props = DialogPrimitive.TitleProps;
 

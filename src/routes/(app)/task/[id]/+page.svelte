@@ -5,11 +5,13 @@
 	import autosize from '$lib/actions/autosize'
 	import { receive, send } from '$lib/util/transition'
 
+    export let data;
+
 	const rep = getReplicache()
 
 	const s = TodoStore.get.watch(
 		() => rep,
-		() => [$page.params.id]
+		() => [data.id]
 	)()
 
 	const ready = s.ready
@@ -28,7 +30,7 @@
 			const checked = Boolean(e.target.checked)
 			console.log({ checked })
 			return await rep.mutate.todo_update({
-				id: [$page.params.id],
+				id: [data.id],
 				data: {
 					completed: checked ? new Date() : null
 				}
@@ -43,7 +45,7 @@
 
 			if (text === $s?.[key]) return console.log('no change')
 			return await rep.mutate.todo_update({
-				id: [$page.params.id],
+				id: [data.id],
 				data: {
 					[key]: text
 				}
@@ -65,13 +67,13 @@
 			bind:this={form}
 			on:submit={async e => {
 				e.preventDefault()
-				const data = new FormData(form)
+				const formData = new FormData(form)
 
-				const text = String(data.get('text') ?? '')
-				const completed = Boolean(data.get('completed')) ? new Date() : null
+				const text = String(formData.get('text') ?? '')
+				const completed = Boolean(formData.get('completed')) ? new Date() : null
 
 				await rep.mutate.todo_update({
-					id: [$page.params.id],
+					id: [data.id],
 					data: {
 						text,
 						completed

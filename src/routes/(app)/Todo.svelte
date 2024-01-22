@@ -14,6 +14,8 @@
 	} from '$lib/actions/keyboard-navigator'
 	import type { Snapshot } from './$types'
 	import { goto, preloadData, pushState } from '$app/navigation'
+	import * as Dialog from '$lib/components/ui/dialog'
+	import { fade, fly, scale } from 'svelte/transition'
 	// export let rep: Replicache
 	const rep = getReplicache()
 	const t = TodoStore.list.watch(
@@ -40,6 +42,10 @@
 
 	$: filter = $page.url.searchParams.get('filter') || 'all'
 	$: allFiltered = $available.every(todo => todo.completed)
+	$: dialogOpen =
+		'selected' in $page.state && $page.state.selected && typeof $page.state.selected === 'string'
+			? true
+			: false
 
 	let newTodo = ''
 
@@ -239,8 +245,7 @@
 								const result = await preloadData(href)
 
 								if (result.type === 'loaded' && result.status === 200) {
-									console.log({ result })
-									pushState(href, { selected: result.data })
+									pushState(href, { selected: result.data.id })
 								} else {
 									goto(href)
 								}
@@ -327,9 +332,25 @@
 	</div>
 {/if}
 
-{#if "selected" in $page.state && $page.state.selected}
-
-{/if}
+<Dialog.Root
+	open={dialogOpen}
+	onOpenChange={open => {
+		if (!open) {
+			history.back()
+		}
+	}}
+>
+	<!-- Move to provider -->
+	<Dialog.Content open={dialogOpen} class="">
+        hello
+		<TodoDetail
+			data={{
+				replicache: rep,
+				id: $page.state.selected
+			}}
+		/>
+	</Dialog.Content>
+</Dialog.Root>
 
 <style>
 	.selected {
