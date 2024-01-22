@@ -28,27 +28,28 @@
 <Dialog.Portal>
 	<Dialog.Overlay />
 	{#if $open}
-		<div class="fixed left-0 top-10 z-50 flex w-screen items-start justify-center px-3 py-[13vh]">
-			<DialogPrimitive.Content asChild let:builder>
-				<div
-					{...$$restProps}
-					use:builder.action
-					{...builder}
-					class={cn(
-						'relative flex max-w-2xl flex-1 flex-col justify-center gap-4 border bg-background p-6 shadow-lg sm:rounded-lg',
+		<div
+			transition:transition={transitionConfig}
+			{...$$restProps}
+			class={cn('fixed left-0 top-10 z-50 flex w-screen items-start justify-center px-3 py-[13vh]')}
+		>
+			<DialogPrimitive.Content
+				{transition}
+				{transitionConfig}
+				class={cn(
+					'relative flex max-w-2xl flex-1 flex-col justify-center gap-4 border bg-background p-6 shadow-lg sm:rounded-lg',
 
-						className
-					)}
-					transition:flyAndScale|global={{ duration: 150 }}
+					className
+				)}
+				{...$$restProps}
+			>
+				<slot />
+				<DialogPrimitive.Close
+					class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
 				>
-					<slot />
-					<DialogPrimitive.Close
-						class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-					>
-						<X weight="thin" class="h-4 w-4" />
-						<span class="sr-only">Close</span>
-					</DialogPrimitive.Close>
-				</div>
+					<X weight="thin" class="h-4 w-4" />
+					<span class="sr-only">Close</span>
+				</DialogPrimitive.Close>
 			</DialogPrimitive.Content>
 		</div>
 	{/if}

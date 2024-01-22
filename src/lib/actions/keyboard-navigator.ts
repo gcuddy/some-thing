@@ -18,6 +18,7 @@ type Options = {
 	) => Promise<boolean | undefined> | boolean | undefined
 	scope?: HTMLElement
 	initialFocus?: HTMLElement
+	disable?: () => boolean
 }
 //  Action<HTMLElement, Options>
 export const createKeyboardNavigator = (options: Options) => {
@@ -75,6 +76,9 @@ export const createKeyboardNavigator = (options: Options) => {
 	}
 
 	const handleKeydown = async (e: KeyboardEvent) => {
+        if (options.disable?.()) {
+					return
+				}
 		if (document.activeElement?.tagName === 'TEXAREA') return
 		if (
 			document.activeElement?.tagName === 'INPUT' &&

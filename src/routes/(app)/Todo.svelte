@@ -83,6 +83,12 @@
 	const navigator = createKeyboardNavigator({
 		target: "li[data-element='todo']",
 		onSelect: el => el.querySelector('a')?.click(),
+		disable: () => {
+			if (dialogOpen) return true
+			if ($page.params.id) return true
+			console.log('disable - false')
+			return false
+		},
 		onDelete: async els => {
 			await rep.mutate.todo_delete({
 				ids: els.map(el => el.dataset.todoId!),
@@ -339,10 +345,15 @@
 			history.back()
 		}
 	}}
+	openFocus={'[data-todo-input]'}
 >
 	<!-- Move to provider -->
 	<Dialog.Content class="p-0">
 		<TodoDetail
+			on:submit={() => {
+				console.log('submit')
+				history.back()
+			}}
 			data={{
 				replicache: rep,
 				id: $page.state.selected

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/stores'
 	import { TodoStore } from '$lib/data/todo'
 	import { getReplicache } from '../../replicache'
 	import autosize from '$lib/actions/autosize'
 	import { receive, send } from '$lib/util/transition'
+	import { createEventDispatcher, onDestroy, onMount } from 'svelte'
 
 	export let data
 
@@ -13,6 +13,10 @@
 		() => rep,
 		() => [data.id]
 	)()
+
+	// if (!$s) {
+	//     throw new Error('no $s')
+	// }
 
 	const ready = s.ready
 
@@ -24,6 +28,9 @@
 	$: console.log({ $s })
 
 	let form: HTMLFormElement
+	let textInput: HTMLInputElement
+
+	const dispatch = createEventDispatcher()
 
 	async function handleChange(e: Event) {
 		if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
@@ -59,65 +66,98 @@
 			// })
 		}
 	}
+
+	let mounted = false
+
+	onMount(() => {
+		// wait for animations to finish
+		setTimeout(() => {
+			mounted = true
+			textInput?.focus()
+		}, 200)
+	})
+
+	onDestroy(() => {
+		console.log('destroy')
+		mounted = false
+	})
 </script>
 
-{#if $ready && $s}
+<!-- {#if $ready && $s} -->
+<form
+	bind:this={form}
+	on:submit={async e => {
+		e.preventDefault()
+		const formData = new FormData(form)
 
-		<form
-			bind:this={form}
-			on:submit={async e => {
-				e.preventDefault()
-				const formData = new FormData(form)
+		const text = String(formData.get('text') ?? '')
+		const completed = Boolean(formData.get('completed')) ? new Date() : null
 
-				const text = String(formData.get('text') ?? '')
-				const completed = Boolean(formData.get('completed')) ? new Date() : null
+		// submit if there's a difference
 
-				await rep.mutate.todo_update({
-					id: [data.id],
-					data: {
-						text,
-						completed
+		await rep.mutate.todo_update({
+			id: [data.id],
+			data: {
+				text,
+				completed
+			}
+		})
+
+		dispatch('submit')
+	}}
+	class="flex flex-col"
+>
+	<div class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4">
+		<label class="sr-only" for="completed"> Completed </label>
+		<input
+			type="checkbox"
+			class="mt-2 flex self-start"
+			id="completed"
+			checked={!!$s?.completed}
+			name="completed"
+			on:change={handleChange}
+		/>
+		<div class="flex flex-1 flex-col gap-0.5">
+			<input
+				data-todo-input
+				in:send={{ key: `todo-${$s.id}` }}
+				out:receive={{ key: `todo-${$s.id}` }}
+				bind:this={textInput}
+				type="text"
+				on:blur={handleChange}
+				class="text-xl font-medium focus-visible:outline-none focus-visible:ring-0"
+				value={$s?.text}
+				name="text"
+				on:keydown={e => {
+					console.log({ mounted })
+					if (e.key === 'Enter' && mounted) {
+						e.preventDefault()
+						// await handleChange(e)
+						dispatch('submit')
 					}
-				})
-			}}
-			class="flex flex-col"
-		>
-			<div class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4">
-				<label class="sr-only" for="completed"> Completed </label>
-				<input
-					type="checkbox"
-					class="mt-2 flex self-start"
-					id="completed"
-					checked={!!$s?.completed}
-					name="completed"
-					on:change={handleChange}
-				/>
-				<div class="flex flex-1 flex-col gap-0.5">
-					<input
-						in:send={{ key: `todo-${$s.id}` }}
-						out:receive={{ key: `todo-${$s.id}` }}
-						type="text"
-						on:blur={handleChange}
-						autofocus
-						class="text-xl font-medium focus-visible:outline-none focus-visible:ring-0"
-						value={$s?.text}
-						name="text"
-					/>
-					<textarea
-						value={$s?.notes}
-						name="notes"
-						use:autosize
-						on:blur={handleChange}
-						placeholder="Notes"
-						class="focus-visible:outline-none"
-					/>
-				</div>
-			</div>
+				}}
+			/>
+			<textarea
+				value={$s?.notes}
+				name="notes"
+				use:autosize
+				on:blur={handleChange}
+				placeholder="Notes"
+				class="focus-visible:outline-none"
+				on:keydown={async e => {
+					if (e.key === 'Enter' && e.metaKey) {
+						e.preventDefault()
+						dispatch('submit')
+					}
+				}}
+			/>
+		</div>
+	</div>
 
-			<!-- TODO: metadata like date, tags, etc -->
+	<!-- TODO: metadata like date, tags, etc -->
 
-			<noscript>
-				<button>Save</button>
-			</noscript>
-		</form>
-{/if}
+	<noscript>
+		<button>Save</button>
+	</noscript>
+</form>
+<!-- {/if} -->
