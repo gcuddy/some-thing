@@ -74,7 +74,7 @@
 		// wait for animations to finish
 		setTimeout(() => {
 			mounted = true
-			textInput?.focus()
+			// textInput?.focus()
 		}, 200)
 	})
 

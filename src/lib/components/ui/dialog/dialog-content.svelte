@@ -6,7 +6,9 @@
 	import { getContext } from 'svelte'
 	import type { Writable } from 'svelte/store'
 
-	type $$Props = DialogPrimitive.ContentProps
+	type $$Props = DialogPrimitive.ContentProps & {
+		overlay?: boolean
+	}
 
 	let className: $$Props['class'] = undefined
 	export let transition: $$Props['transition'] = flyAndScale
@@ -23,10 +25,12 @@
 			open: Writable<boolean>
 		}
 	}
+
+	export let overlay = true
 </script>
 
 <Dialog.Portal>
-	<Dialog.Overlay />
+	<Dialog.Overlay class={cn('fixed inset-0 z-50 bg-background/50 backdrop-blur-0')} />
 	{#if $open}
 		<div
 			transition:transition={transitionConfig}

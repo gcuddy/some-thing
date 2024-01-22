@@ -98,19 +98,25 @@
 	}
 
 	let headerContentRect: DOMRectReadOnly
-	let footerContentRect: DOMRectReadOnly
-	$: console.log({ headerContentRect, footerContentRect })
 
 	let wrapper: HTMLDivElement
 
 	function calculateVirtualListHeight() {
 		console.log('calculating')
 		return (
-			innerHeight - 40 - (headerContentRect?.height ?? 0) - (footerContentRect?.height ?? 0) + 'px'
+			innerHeight -
+			40 -
+			(headerContentRect?.height ?? 0) -
+			(footerBorderBoxSize?.[0]?.blockSize ?? 0) +
+			'px'
 		)
 	}
 	$: virtualListHeight =
-		innerHeight - 40 - (headerContentRect?.height ?? 0) - (footerContentRect?.height ?? 0) + 'px'
+		innerHeight -
+		40 -
+		(headerContentRect?.height ?? 0) -
+		(footerBorderBoxSize?.[0]?.blockSize ?? 0) +
+		'px'
 
 	const navigator = createKeyboardNavigator({
 		target: "li[data-element='todo']",
@@ -160,6 +166,8 @@
 		}
 	})
 	setKeyboardNavigatorContext(navigator)
+
+	let footerBorderBoxSize: ResizeObserverEntry['borderBoxSize']
 </script>
 
 <svelte:window
@@ -303,7 +311,7 @@
 								data-element="todo"
 								data-todo-id={todo.id}
 								data-completed={todo.completed ? 'true' : undefined}
-								class="absolute left-0 top-0 w-full rounded px-2 py-1 data-[focus=true]:bg-blue-200 data-[selected=true]:bg-blue-100"
+								class="absolute left-0 top-0 w-full rounded px-2 py-1 text-sm data-[focus=true]:bg-blue-200 data-[selected=true]:bg-blue-100"
 								style:height="{row.size}px"
 								style:transform="translateY({row.start}px)"
 								animate:flip={{
@@ -406,29 +414,31 @@
 				</div>
 			</div>
 		</div>
-		<div class="footer" bind:contentRect={footerContentRect}>
-			<p>{$available.filter(t => !t.completed).length} items left</p>
+		<div class="footer py-2 border-t" bind:borderBoxSize={footerBorderBoxSize}>
+			<div class="h-9 text-sm">
+				<p>{$available.filter(t => !t.completed).length} items left</p>
 
-			{#each ['All', 'Active', 'Completed'] as filterState}
-				<a
-					href="/?filter={filterState.toLowerCase()}"
-					class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
-				>
-			{/each}
-
-			<div>
-				{#if $available.some(t => t.completed)}
-					<button
-						on:click={async () => {
-							await rep.mutate.todo_delete({
-								ids: $available.filter(t => t.completed).map(t => t.id),
-								archive: true
-							})
-						}}
+				{#each ['All', 'Active', 'Completed'] as filterState}
+					<a
+						href="/?filter={filterState.toLowerCase()}"
+						class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
 					>
-						Clear completed
-					</button>
-				{/if}
+				{/each}
+
+				<div>
+					{#if $available.some(t => t.completed)}
+						<button
+							on:click={async () => {
+								await rep.mutate.todo_delete({
+									ids: $available.filter(t => t.completed).map(t => t.id),
+									archive: true
+								})
+							}}
+						>
+							Clear completed
+						</button>
+					{/if}
+				</div>
 			</div>
 		</div>
 	</div>
@@ -486,12 +496,12 @@
 		text-decoration: line-through;
 		opacity: 0.5;
 	}
-	ul li span,
+	/* ul li span,
 	ul li .edit {
 		flex: 1;
 		font-size: 1rem;
 		font-family: Inter, sans-serif;
-	}
+	} */
 
 	.header input {
 		flex: 1;
