@@ -76,16 +76,40 @@
 	const navigator = createKeyboardNavigator({
 		target: "li[data-element='todo']",
 		onSelect: el => el.querySelector('a')?.click(),
-		onKeydown: async (e, el) => {
+		onDelete: async els => {
+			await rep.mutate.todo_delete({
+				ids: els.map(el => el.dataset.todoId!),
+				archive: true
+			})
+		},
+		onKeydown: async (e, { focused, selected }) => {
 			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
 				e.preventDefault()
-				console.log({ el })
-				await rep.mutate.todo_update({
-					id: [el.dataset.todoId!],
-					data: {
-						completed: Boolean(el.dataset.completed) ? null : new Date()
-					}
-				})
+				const id = selected.length
+					? selected.map(el => el.dataset.todoId!)
+					: [focused.dataset.todoId!]
+				const els = selected.length ? selected : [focused]
+				console.log({ id, selected })
+				const allCompleted = els.every(el => Boolean(el.dataset.completed))
+				console.log({ allCompleted })
+				if (allCompleted) {
+					await rep.mutate.todo_update({
+						id,
+						data: {
+							completed: null
+						}
+					})
+				} else {
+					// get uncompleted
+					const uncompleted = els.filter(el => !Boolean(el.dataset.completed))
+					const id = uncompleted.map(el => el.dataset.todoId!)
+					await rep.mutate.todo_update({
+						id,
+						data: {
+							completed: new Date()
+						}
+					})
+				}
 				return true
 			}
 		}
@@ -168,12 +192,16 @@
 						// if (e.target instanceof HTMLInputElement) {
 						// 	return
 						// }
-						navigator.focus(e.currentTarget)
+						if (e.shiftKey) {
+							navigator.selectAdjacent(e.currentTarget)
+						} else {
+							navigator.focus(e.currentTarget)
+						}
 					}}
 					data-element="todo"
 					data-todo-id={todo.id}
 					data-completed={todo.completed ? 'true' : undefined}
-					class="rounded px-2 py-1 data-[focus=true]:bg-blue-200"
+					class="rounded px-2 py-1 data-[focus=true]:bg-blue-200 data-[selected=true]:bg-blue-100"
 					animate:flip={{
 						duration: 150,
 						easing: cubicInOut

@@ -5,9 +5,16 @@ import { writable } from 'svelte/store'
 type Options = {
 	target: string
 	onSelect: (input: HTMLElement) => void
+	onDelete: (els: HTMLElement[]) => void
 	onKeydown?: (
 		e: KeyboardEvent,
-		el: HTMLElement
+		{
+			focused,
+			selected
+		}: {
+			focused: HTMLElement
+			selected: HTMLElement[]
+		}
 	) => Promise<boolean | undefined> | boolean | undefined
 	scope?: HTMLElement
 	initialFocus?: HTMLElement
@@ -18,6 +25,7 @@ export const createKeyboardNavigator = (options: Options) => {
 		Array.from((options.scope ?? document).querySelectorAll<HTMLElement>(options.target))
 
 	const focused = () => targets().find(x => x.dataset.focus === 'true')
+	const selected = () => targets().filter(x => x.dataset.selected === 'true')
 
 	const store = writable<{
 		index: number[]
@@ -29,11 +37,16 @@ export const createKeyboardNavigator = (options: Options) => {
 		adjacentPivot: null
 	})
 
+	// pivot is equivalent to data-focus
+	// selected is equivalent to data-selected
+	let pivot = 0
+
 	// todo: mutation observer to edit store?
 
 	function move(offset: -1 | 1) {
 		const all = targets()
 		if (all.length === 0) return
+		all.forEach(item => item.removeAttribute('data-selected'))
 		const focusedIndex = all.findIndex(x => x.dataset.focus === 'true')
 		const f = all[focusedIndex]
 
@@ -73,7 +86,12 @@ export const createKeyboardNavigator = (options: Options) => {
 		if (options.onKeydown) {
 			const f = focused()
 			if (f) {
-				if (await options.onKeydown(e, f)) {
+				if (
+					await options.onKeydown(e, {
+						focused: f,
+						selected: selected()
+					})
+				) {
 					e.preventDefault()
 					return
 				}
@@ -88,6 +106,10 @@ export const createKeyboardNavigator = (options: Options) => {
 			move(-1)
 			return
 		}
+		if (e.key === 'ArrowDown' && e.shiftKey) {
+			// add next item to selection, and focus it
+			e.preventDefault()
+		}
 		if (e.key === 'ArrowDown' || e.key === 'Tab') {
 			e.preventDefault()
 			move(1)
@@ -99,6 +121,15 @@ export const createKeyboardNavigator = (options: Options) => {
 			if (f) options.onSelect(f)
 			return
 		}
+		// delete
+		if (e.key === 'Backspace') {
+			const f = focused()
+			const s = selected()
+			if (f) {
+				options.onDelete(s.length > 0 ? s : [f])
+			}
+			return
+		}
 	}
 
 	const handleKeyup = (e: KeyboardEvent) => {
@@ -107,6 +138,7 @@ export const createKeyboardNavigator = (options: Options) => {
 
 	function focus(target: HTMLElement) {
 		const all = targets()
+		all.forEach(item => item.removeAttribute('data-selected'))
 		const matchIndex = all.findIndex(item => item === target || item.contains(target))
 		if (matchIndex === -1) return
 		const match = all[matchIndex]
@@ -121,6 +153,30 @@ export const createKeyboardNavigator = (options: Options) => {
 		if (f === match) return
 		if (f) f.removeAttribute('data-focus')
 		match.setAttribute('data-focus', 'true')
+	}
+
+	function selectAdjacent(target: HTMLElement) {
+		const all = targets()
+		const matchIndex = all.findIndex(item => item === target || item.contains(target))
+		if (matchIndex === -1) return
+		const match = all[matchIndex]
+		const f = focused()
+		if (!f) {
+			// do focus
+			return
+		}
+		const pivotIndex = all.findIndex(item => item === f || item.contains(f))
+		if (pivotIndex === -1) return
+
+		//  now get items between pivot and match
+		const items = all.slice(Math.min(pivotIndex, matchIndex), Math.max(pivotIndex, matchIndex))
+
+		//  now set all items to selected
+		items.forEach(item => item.setAttribute('data-selected', 'true'))
+
+		f.removeAttribute('data-focus')
+		match.setAttribute('data-focus', 'true')
+		match.setAttribute('data-selected', 'true')
 	}
 
 	console.log({ options })
@@ -155,6 +211,7 @@ export const createKeyboardNavigator = (options: Options) => {
 		get focused() {
 			return focused()
 		},
+		selectAdjacent,
 		...store
 	}
 }
