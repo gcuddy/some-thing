@@ -5,7 +5,7 @@
 	import { derived } from 'svelte/store'
 	import VisuallyHidden from '$lib/components/visually-hidden.svelte'
 	import { NoteBlank } from 'phosphor-svelte'
-	import { receive, send } from '$lib/util/transition'
+	import TodoDetail from './task/[id]/+page.svelte'
 	import { flip } from 'svelte/animate'
 	import { cubicInOut } from 'svelte/easing'
 	import {
@@ -13,6 +13,7 @@
 		setKeyboardNavigatorContext
 	} from '$lib/actions/keyboard-navigator'
 	import type { Snapshot } from './$types'
+	import { goto, preloadData, pushState } from '$app/navigation'
 	// export let rep: Replicache
 	const rep = getReplicache()
 	const t = TodoStore.list.watch(
@@ -223,7 +224,28 @@
 							checked={!!todo.completed}
 							class="transition active:scale-105"
 						/>
-						<a class="flex cursor-default items-center" href="/task/{todo.id}">
+						<a
+							class="flex cursor-default items-center"
+							href="/task/{todo.id}"
+							on:click={async e => {
+								// if opening new tab or screen is too small, bail
+								if (e.metaKey || e.ctrlKey || innerWidth < 640) return
+								e.preventDefault()
+
+								const { href } = e.currentTarget
+
+								// run `load` functions (or rather, get the result of the `load` functions
+								// that are already running because of `data-sveltekit-preload-data`)
+								const result = await preloadData(href)
+
+								if (result.type === 'loaded' && result.status === 200) {
+									console.log({ result })
+									pushState(href, { selected: result.data })
+								} else {
+									goto(href)
+								}
+							}}
+						>
 							{#if editing === todo.id}
 								<!-- svelte-ignore a11y-autofocus -->
 								<input
@@ -303,6 +325,10 @@
 			{/if}
 		</div>
 	</div>
+{/if}
+
+{#if "selected" in $page.state && $page.state.selected}
+
 {/if}
 
 <style>
