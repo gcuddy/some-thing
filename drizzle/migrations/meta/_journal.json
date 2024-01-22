@@ -15,6 +15,13 @@
       "when": 1705903707748,
       "tag": "0001_violet_kulan_gath",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1705966388238,
+      "tag": "0002_solid_gravity",
+      "breakpoints": true
     }
   ]
 }

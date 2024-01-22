@@ -82,6 +82,15 @@
 		console.log('destroy')
 		mounted = false
 	})
+
+	export function getState() {
+		const formData = new FormData(form)
+
+		const text = String(formData.get('text') ?? '')
+		const completed = Boolean(formData.get('completed')) ? new Date() : null
+
+		return { text, completed }
+	}
 </script>
 
 {#if $ready}
@@ -89,10 +98,7 @@
 		bind:this={form}
 		on:submit={async e => {
 			e.preventDefault()
-			const formData = new FormData(form)
-
-			const text = String(formData.get('text') ?? '')
-			const completed = Boolean(formData.get('completed')) ? new Date() : null
+			const { text, completed } = getState()
 
 			// submit if there's a difference
 
@@ -137,8 +143,8 @@
 						if (e.key === 'ArrowDown') {
 							e.preventDefault()
 							// move to textarea at top
-                            textarea?.focus()
-                            textarea?.setSelectionRange(0, 0)
+							textarea?.focus()
+							textarea?.setSelectionRange(0, 0)
 						}
 					}}
 				/>
