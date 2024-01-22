@@ -348,7 +348,7 @@
 	openFocus={'[data-todo-input]'}
 >
 	<!-- Move to provider -->
-	<Dialog.Content class="p-0">
+	<Dialog.Content class="p-1">
 		<TodoDetail
 			on:submit={() => {
 				console.log('submit')

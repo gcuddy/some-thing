@@ -29,6 +29,7 @@
 
 	let form: HTMLFormElement
 	let textInput: HTMLInputElement
+	let textarea: HTMLTextAreaElement
 
 	const dispatch = createEventDispatcher()
 
@@ -83,81 +84,94 @@
 	})
 </script>
 
-<!-- {#if $ready && $s} -->
-<form
-	bind:this={form}
-	on:submit={async e => {
-		e.preventDefault()
-		const formData = new FormData(form)
+{#if $ready}
+	<form
+		bind:this={form}
+		on:submit={async e => {
+			e.preventDefault()
+			const formData = new FormData(form)
 
-		const text = String(formData.get('text') ?? '')
-		const completed = Boolean(formData.get('completed')) ? new Date() : null
+			const text = String(formData.get('text') ?? '')
+			const completed = Boolean(formData.get('completed')) ? new Date() : null
 
-		// submit if there's a difference
+			// submit if there's a difference
 
-		await rep.mutate.todo_update({
-			id: [data.id],
-			data: {
-				text,
-				completed
-			}
-		})
+			await rep.mutate.todo_update({
+				id: [data.id],
+				data: {
+					text,
+					completed
+				}
+			})
 
-		dispatch('submit')
-	}}
-	class="flex flex-col"
->
-	<div class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4">
-		<label class="sr-only" for="completed"> Completed </label>
-		<input
-			type="checkbox"
-			class="mt-2 flex self-start"
-			id="completed"
-			checked={!!$s?.completed}
-			name="completed"
-			on:change={handleChange}
-		/>
-		<div class="flex flex-1 flex-col gap-0.5">
+			dispatch('submit')
+		}}
+		class="flex flex-col"
+	>
+		<div class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4">
+			<label class="sr-only" for="completed"> Completed </label>
 			<input
-				data-todo-input
-				in:send={{ key: `todo-${$s.id}` }}
-				out:receive={{ key: `todo-${$s.id}` }}
-				bind:this={textInput}
-				type="text"
-				on:blur={handleChange}
-				class="text-xl font-medium focus-visible:outline-none focus-visible:ring-0"
-				value={$s?.text}
-				name="text"
-				on:keydown={e => {
-					console.log({ mounted })
-					if (e.key === 'Enter' && mounted) {
-						e.preventDefault()
-						// await handleChange(e)
-						dispatch('submit')
-					}
-				}}
+				type="checkbox"
+				class="mt-2 flex self-start"
+				id="completed"
+				checked={!!$s?.completed}
+				name="completed"
+				on:change={handleChange}
 			/>
-			<textarea
-				value={$s?.notes}
-				name="notes"
-				use:autosize
-				on:blur={handleChange}
-				placeholder="Notes"
-				class="focus-visible:outline-none"
-				on:keydown={async e => {
-					if (e.key === 'Enter' && e.metaKey) {
-						e.preventDefault()
-						dispatch('submit')
-					}
-				}}
-			/>
+			<div class="flex flex-1 flex-col gap-0.5">
+				<input
+					data-todo-input
+					bind:this={textInput}
+					type="text"
+					on:blur={handleChange}
+					class="text-xl font-medium focus-visible:outline-none focus-visible:ring-0"
+					value={$s?.text}
+					name="text"
+					on:keydown={e => {
+						console.log({ mounted })
+						if (e.key === 'Enter' && mounted) {
+							e.preventDefault()
+							// await handleChange(e)
+							dispatch('submit')
+						}
+						if (e.key === 'ArrowDown') {
+							e.preventDefault()
+							// move to textarea at top
+                            textarea?.focus()
+                            textarea?.setSelectionRange(0, 0)
+						}
+					}}
+				/>
+				<textarea
+					bind:this={textarea}
+					value={$s?.notes}
+					name="notes"
+					use:autosize
+					on:blur={handleChange}
+					placeholder="Notes"
+					class="focus-visible:outline-none"
+					on:keydown={async e => {
+						if (e.key === 'Enter' && e.metaKey) {
+							e.preventDefault()
+							dispatch('submit')
+						}
+						if (e.key === 'ArrowUp') {
+							// check if we're at the top
+							if (textarea?.selectionStart === 0) {
+								e.preventDefault()
+								textInput?.focus()
+							}
+						}
+					}}
+				/>
+			</div>
 		</div>
-	</div>
 
-	<!-- TODO: metadata like date, tags, etc -->
+		<!-- TODO: metadata like date, tags, etc -->
 
-	<noscript>
-		<button>Save</button>
-	</noscript>
-</form>
+		<noscript>
+			<button>Save</button>
+		</noscript>
+	</form>
+{/if}
 <!-- {/if} -->
