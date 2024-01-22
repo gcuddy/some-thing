@@ -181,7 +181,7 @@
 							checked={!!todo.completed}
 							class="transition active:scale-105"
 						/>
-						<a class="flex items-center" href="/task/{todo.id}">
+						<a class="flex cursor-default items-center" href="/task/{todo.id}">
 							{#if editing === todo.id}
 								<!-- svelte-ignore a11y-autofocus -->
 								<input

@@ -4,7 +4,7 @@
 </script>
 
 <div class="fixed bottom-0 left-0 top-0 w-60">
-	<nav class="relative flex h-full flex-col border-r">
+	<nav class="relative flex h-full flex-col border-r bg-gray-100">
 		<div class="flex flex-[initial] shrink-0 flex-col items-stretch gap-3 px-3 pb-2 pt-1">
 			<div class="flex justify-between">
 				<span>todo</span>
