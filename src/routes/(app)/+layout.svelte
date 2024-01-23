@@ -10,6 +10,17 @@
 
 	if (data.replicache) setReplicache(data.replicache)
 
+    $: if (data.replicache) {
+        data.replicache.subscribe(async tx => {
+            return await tx.scan().entries().toArray()
+        }, {
+            onData: (e) => {
+                console.log('onData', e)
+
+            }
+        })
+    }
+
 	onMount(() => {
 		if (!data.replicache) return
 
@@ -34,7 +45,9 @@
 
 <div class="flex h-full w-full flex-row items-stretch overflow-hidden">
 	<aside class="w-60 max-sm:hidden">
-		<Sidebar />
+		{#if data.replicache}
+			<Sidebar rep={data.replicache} />
+		{/if}
 	</aside>
 
 	<div class="flex min-w-0 flex-1 flex-col pt-10">

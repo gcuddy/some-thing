@@ -13,8 +13,10 @@ import { withUser } from '$lib/core/user'
 import { todos } from '$lib/core/todo/todo.sql'
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { equals, groupBy, mapValues, pipe, toPairs } from 'remeda'
+import { lists } from '@/core/list/list.sql'
 
 export const TABLES = {
+	lists,
 	todos
 }
 

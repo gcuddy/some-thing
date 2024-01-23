@@ -1,0 +1,122 @@
+<script lang="ts">
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
+
+	import autosize from '$lib/actions/autosize'
+	import { CheckCircle, DotsThree, Trash } from 'phosphor-svelte'
+	import type { ReplicacheType } from '../../routes/(app)/replicache'
+	import type { List } from '@/core/list'
+	import { createId } from '@/util/nanoid'
+	import { page } from '$app/stores'
+	import { goto } from '$app/navigation'
+
+	export let replicache: ReplicacheType
+	export let list: Pick<List, 'id' | 'name' | 'notes'> | null = null
+
+	let notesTextarea: HTMLTextAreaElement
+	let textInput: HTMLTextAreaElement
+
+	let _new = !list
+	export { _new as new }
+</script>
+
+<div class="flex h-full w-full shrink grow flex-col px-16 pt-10">
+	<div class="flex items-center gap-2">
+		<input type="checkbox" class="text-lg" />
+		<textarea
+			value={list?.name}
+			bind:this={textInput}
+			class="flex-1 py-1 text-2xl font-semibold focus-visible:outline-none"
+			autofocus
+			on:blur={async e => {
+				if (_new && e.currentTarget.value.trim()) {
+					_new = false
+					const list = {
+						id: createId(),
+						name: e.currentTarget.value.trim(),
+						notes: ''
+					}
+					await replicache.mutate.list_create(list)
+					if ($page.url.pathname === '/list/new') {
+						goto(`/list/${list.id}`)
+					}
+				} else if (list) {
+					if (list.name !== e.currentTarget.value.trim()) {
+						await replicache.mutate.list_update({
+							id: [list.id],
+							data: {
+								name: e.currentTarget.value.trim()
+							}
+						})
+					}
+				}
+			}}
+			on:keydown={e => {
+				if (e.key === 'Enter') {
+					e.preventDefault()
+					e.currentTarget.blur()
+				}
+				if (e.key === 'ArrowDown') {
+					e.preventDefault()
+					notesTextarea?.focus()
+				}
+			}}
+			use:autosize
+			rows={1}
+			placeholder="New List"
+		/>
+		<DropdownMenu.Root>
+			<DropdownMenu.Trigger class="cursor-default data-[state=open]:bg-muted px-1 inline-flex items-center justify-center rounded-md">
+				<DotsThree weight="bold" class="h-6 w-6 text-muted-foreground" />
+				<span class="sr-only">Open menu</span>
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Content>
+				<DropdownMenu.Group>
+					<!-- <DropdownMenu.Label>My Account</DropdownMenu.Label> -->
+					<DropdownMenu.Item>
+                        <CheckCircle class="mr-1.5 text-accent group-data-[highlighted]:text-white" />
+                        Mark as Complete</DropdownMenu.Item>
+					<DropdownMenu.Separator />
+					<DropdownMenu.Item>
+						<Trash class="mr-1.5 text-accent group-data-[highlighted]:text-white" />
+						Delete List</DropdownMenu.Item
+					>
+					<!-- <DropdownMenu.Item>Team</DropdownMenu.Item>
+					<DropdownMenu.Item>Subscription</DropdownMenu.Item> -->
+				</DropdownMenu.Group>
+			</DropdownMenu.Content>
+		</DropdownMenu.Root>
+	</div>
+	<div>
+		<textarea
+			value={list?.notes ?? ''}
+			on:keydown={e => {
+				if (e.key === 'ArrowUp') {
+					if (e.currentTarget.selectionStart === 0) {
+						e.preventDefault()
+						textInput?.focus()
+					}
+				}
+			}}
+			on:blur={async e => {
+				if (list && (list.notes ?? '') !== e.currentTarget.value.trim()) {
+					await replicache.mutate.list_update({
+						id: [list.id],
+						data: {
+							notes: e.currentTarget.value.trim()
+						}
+					})
+				}
+			}}
+			bind:this={notesTextarea}
+			class="w-full grow py-1 text-sm focus-visible:outline-none"
+			use:autosize
+			placeholder="Notes"
+		/>
+	</div>
+</div>
+
+<style>
+	input[type='checkbox'] {
+		@apply h-5 w-5 rounded-full border-2 border-blue-700;
+	}
+</style>

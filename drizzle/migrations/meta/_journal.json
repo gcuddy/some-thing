@@ -22,6 +22,13 @@
       "when": 1705966388238,
       "tag": "0002_solid_gravity",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1705986282322,
+      "tag": "0003_legal_skin",
+      "breakpoints": true
     }
   ]
 }

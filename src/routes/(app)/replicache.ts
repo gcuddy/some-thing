@@ -3,6 +3,7 @@ import { Client } from '$lib/replicache/framework'
 import type { ServerType } from '$lib/replicache/server'
 import { syncing } from '$lib/stores/sync'
 import { createId } from '$lib/util/nanoid'
+import { ListStore } from '@/data/list'
 import { Replicache } from 'replicache'
 import { getContext, setContext } from 'svelte'
 
@@ -63,6 +64,18 @@ const mutators = new Client<ServerType>()
 			} else {
 				await TodoStore.remove(tx, id)
 			}
+		}
+	})
+	.mutation('list_create', async (tx, input) => {
+		const id = input.id ?? createId()
+		await ListStore.put(tx, [id], {
+			id,
+			name: input.name
+		})
+	})
+	.mutation('list_update', async (tx, { id: ids, data }) => {
+		for (const id of ids) {
+			await ListStore.update(tx, id, list => ({ ...list, ...data }))
 		}
 	})
 	.build()

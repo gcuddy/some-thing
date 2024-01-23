@@ -7,12 +7,15 @@ import { z } from 'zod'
 import { and, inArray } from 'drizzle-orm'
 
 export const List = createSelectSchema(lists, {})
+export type List = typeof lists.$inferSelect
 
 export const create = zod(List.partial().required({ name: true }), async data => {
 	return useTransaction(tx =>
 		tx.insert(lists).values({
 			...data,
-			userId: useUser()
+			userId: useUser(),
+			timeCreated: new Date(),
+			timeUpdated: new Date()
 		})
 	)
 })

@@ -7,7 +7,7 @@ export const lists = sqliteTable('lists', {
 	...id,
 	userId: text('user_id').references(() => user.id),
 	name: text('name'),
-
+	notes: text('notes'),
 	index: integer('index').default(0),
 	shared: text('shared', {
 		enum: ['private', 'public', 'shared']
