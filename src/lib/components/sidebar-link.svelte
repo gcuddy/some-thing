@@ -14,7 +14,7 @@
 <a
 	{href}
 	class={cn(
-		'px-2 py-1 text-sm rounded-md',
+		'px-2 py-1 text-sm rounded-md inline-flex items-center',
 		active && 'bg-gray-200 text-secondary-foreground',
 		className
 	)}

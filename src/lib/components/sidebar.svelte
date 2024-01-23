@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { syncing } from '$lib/stores/sync'
-	import { ArrowsClockwise, Plus, SlidersHorizontal } from 'phosphor-svelte'
+	import { ArrowsClockwise, Plus, SlidersHorizontal, Star, Tray } from 'phosphor-svelte'
 	import Button from './ui/button/button.svelte'
 	import Settings from '../../routes/(app)/(settings)/settings/+page.svelte'
 	import { goto, preloadData, pushState } from '$app/navigation'
@@ -25,9 +25,10 @@
 		() => []
 	)()
 
-	const inboxCount = derived(todos, $todos => $todos.filter(todo => !todo.listId).length)
-
-	$: console.log({ $lists })
+	const inboxCount = derived(
+		todos,
+		$todos => $todos.filter(todo => !todo.listId && !todo.completed).length
+	)
 </script>
 
 <div class="fixed bottom-0 left-0 top-0 w-60">
@@ -43,12 +44,28 @@
 		</div>
 		<div class="flex flex-[initial] grow flex-col overflow-y-auto rounded px-3.5">
 			<!-- scroll  -->
-			<SidebarLink class="font-medium" href="/">Inbox {$inboxCount}</SidebarLink>
-			{#each $lists as list}
-				<SidebarLink href="/list/{list.id}">
-					{list.name}
-				</SidebarLink>
-			{/each}
+			<div class="flex flex-col gap-6">
+				<div class="flex flex-col">
+					<SidebarLink class="font-medium" href="/">
+						<Tray weight="duotone" class="mr-1.5 h-4  w-4 text-accent" />
+						Inbox
+						<span class="ml-auto text-sm text-muted-foreground/85">{$inboxCount}</span></SidebarLink
+					>
+				</div>
+				<div class="flex flex-col">
+					<!-- <SidebarLink class="font-medium" href="/">
+						<Star weight="fill" class="mr-1.5 text-yellow-400 h-4 w-4" />
+						Today</SidebarLink
+					> -->
+				</div>
+				<div class="flex flex-col">
+					{#each $lists as list}
+						<SidebarLink href="/list/{list.id}">
+							{list.name}
+						</SidebarLink>
+					{/each}
+				</div>
+			</div>
 		</div>
 		<div class="flex justify-between border-t px-3.5 py-2">
 			<Button href="/list/new" variant="ghostOutline" class="text-sm text-muted-foreground">
