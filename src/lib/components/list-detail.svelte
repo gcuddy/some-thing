@@ -23,7 +23,7 @@
 	<div class="flex items-center gap-2">
 		<input type="checkbox" class="text-lg" />
 		<textarea
-			value={list?.name}
+			value={list?.name ?? ''}
 			bind:this={textInput}
 			class="flex-1 py-1 text-2xl font-semibold focus-visible:outline-none"
 			autofocus={_new}
@@ -37,12 +37,14 @@
 						notes: ''
 					}
 					await replicache.mutate.list_create(list)
+					console.log({ $page, pathname: $page.url.pathname })
 					if ($page.url.pathname === '/list/new') {
-						goto(`/list/${list.id}`)
+						console.log('navgatig')
+						await goto(`/list/${list.id}`)
 					}
 				} else if (list) {
 					if (list.name !== e.currentTarget.value.trim()) {
-						list.name = e.currentTarget.value.trim()
+						// list.name = e.currentTarget.value.trim()
 						await replicache.mutate.list_update({
 							id: [list.id],
 							data: {
@@ -111,7 +113,7 @@
 			}}
 			on:blur={async e => {
 				if (list && (list.notes ?? '') !== e.currentTarget.value.trim()) {
-					list.notes = e.currentTarget.value.trim()
+					// list.notes = e.currentTarget.value.trim()
 					await replicache.mutate.list_update({
 						id: [list.id],
 						data: {

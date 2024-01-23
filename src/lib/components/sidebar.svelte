@@ -8,6 +8,9 @@
 	import { page } from '$app/stores'
 	import { getReplicache, type ReplicacheType } from '../../routes/(app)/replicache'
 	import { ListStore } from '@/data/list'
+	import { TodoStore } from '@/data/todo'
+	import { derived } from 'svelte/store'
+	import SidebarLink from './sidebar-link.svelte'
 	let settingsOpen = false
 
 	export let rep: ReplicacheType
@@ -17,14 +20,22 @@
 		() => []
 	)()
 
+	const todos = TodoStore.list.watch(
+		() => rep,
+		() => []
+	)()
+
+	const inboxCount = derived(todos, $todos => $todos.filter(todo => !todo.listId).length)
+
 	$: console.log({ $lists })
 </script>
 
 <div class="fixed bottom-0 left-0 top-0 w-60">
 	<nav class="relative flex h-full flex-col border-r bg-gray-100">
-		<div class="flex flex-[initial] shrink-0 flex-col items-stretch gap-3 px-3.5 pb-2 pt-1">
+		<div class="flex h-10 flex-[initial] shrink-0 flex-col items-stretch gap-3 px-3.5 pb-2 pt-1">
 			<div class="flex justify-between">
-				<span>todo</span>
+				<!-- <span>todo</span> -->
+				<span></span>
 				{#if $syncing}
 					<ArrowsClockwise class="animate-spin" />
 				{/if}
@@ -32,9 +43,11 @@
 		</div>
 		<div class="flex flex-[initial] grow flex-col overflow-y-auto rounded px-3.5">
 			<!-- scroll  -->
-			<a href="/">Inbox</a>
+			<SidebarLink class="font-medium" href="/">Inbox {$inboxCount}</SidebarLink>
 			{#each $lists as list}
-				<a href={`/list/${list.id}`}>{list.name}</a>
+				<SidebarLink href="/list/{list.id}">
+					{list.name}
+				</SidebarLink>
 			{/each}
 		</div>
 		<div class="flex justify-between border-t px-3.5 py-2">
