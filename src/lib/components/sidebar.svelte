@@ -19,7 +19,7 @@
 			<a href="/">Inbox</a>
 		</div>
 		<div class="flex justify-between px-3.5 py-2 border-t">
-			<Button variant="ghostOutline" class="text-sm text-muted-foreground">
+			<Button href="/list/new" variant="ghostOutline" class="text-sm text-muted-foreground">
 				<Plus class="mr-1.5" />
 				New list
 			</Button>

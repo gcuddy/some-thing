@@ -80,7 +80,8 @@ export function createReplicache() {
 		pushURL: '/api/party?push',
 		pullURL: '/api/party?pull',
 		mutators,
-		pullInterval: 1000 * 60
+		pullInterval: 1000 * 60,
+		pushDelay: 1000 * 2
 	})
 
 	replicache.onSync = s => syncing.set(s)
