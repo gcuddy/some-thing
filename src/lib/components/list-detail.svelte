@@ -26,8 +26,9 @@
 			value={list?.name}
 			bind:this={textInput}
 			class="flex-1 py-1 text-2xl font-semibold focus-visible:outline-none"
-			autofocus
+			autofocus={_new}
 			on:blur={async e => {
+				console.log({ _new, e, list })
 				if (_new && e.currentTarget.value.trim()) {
 					_new = false
 					const list = {
@@ -41,6 +42,7 @@
 					}
 				} else if (list) {
 					if (list.name !== e.currentTarget.value.trim()) {
+						list.name = e.currentTarget.value.trim()
 						await replicache.mutate.list_update({
 							id: [list.id],
 							data: {
@@ -65,7 +67,9 @@
 			placeholder="New List"
 		/>
 		<DropdownMenu.Root>
-			<DropdownMenu.Trigger class="cursor-default data-[state=open]:bg-muted px-1 inline-flex items-center justify-center rounded-md">
+			<DropdownMenu.Trigger
+				class="inline-flex cursor-default items-center justify-center rounded-md px-1 data-[state=open]:bg-muted"
+			>
 				<DotsThree weight="bold" class="h-6 w-6 text-muted-foreground" />
 				<span class="sr-only">Open menu</span>
 			</DropdownMenu.Trigger>
@@ -73,10 +77,18 @@
 				<DropdownMenu.Group>
 					<!-- <DropdownMenu.Label>My Account</DropdownMenu.Label> -->
 					<DropdownMenu.Item>
-                        <CheckCircle class="mr-1.5 text-accent group-data-[highlighted]:text-white" />
-                        Mark as Complete</DropdownMenu.Item>
+						<CheckCircle class="mr-1.5 text-accent group-data-[highlighted]:text-white" />
+						Mark as Complete</DropdownMenu.Item
+					>
 					<DropdownMenu.Separator />
-					<DropdownMenu.Item>
+					<DropdownMenu.Item
+						on:click={async () => {
+							if (list?.id) {
+								await replicache.mutate.list_delete([list.id])
+							}
+							await goto('/')
+						}}
+					>
 						<Trash class="mr-1.5 text-accent group-data-[highlighted]:text-white" />
 						Delete List</DropdownMenu.Item
 					>
@@ -99,6 +111,7 @@
 			}}
 			on:blur={async e => {
 				if (list && (list.notes ?? '') !== e.currentTarget.value.trim()) {
+					list.notes = e.currentTarget.value.trim()
 					await replicache.mutate.list_update({
 						id: [list.id],
 						data: {

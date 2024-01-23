@@ -29,7 +29,10 @@ export const update = zod(
 		return useTransaction(tx =>
 			tx
 				.update(lists)
-				.set(data)
+				.set({
+					...data,
+					timeUpdated: new Date()
+				})
 				.where(and(inArray(lists.id, id)))
 		)
 	}

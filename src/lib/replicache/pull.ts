@@ -103,6 +103,7 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 		const results: [string, { id: string; version: string; key: string }[]][] = []
 
 		const tableFilters = {
+			lists: isNull(lists.timeDeleted),
 			todos: isNull(todos.timeDeleted)
 		} satisfies {
 			[key in TableName]?: SQLWrapper
@@ -151,6 +152,7 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 		)
 		console.log('combined', Date.now() - now)
 
+		console.log('Results: ', JSON.stringify(results))
 		// SST does account and here too idk
 
 		for (const [name, rows] of results) {
@@ -193,6 +195,7 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 					)
 				)
 				.execute()
+			console.log({ rows })
 			for (const row of rows) {
 				const key = keys[row.id]!
 				patch.push({
@@ -229,6 +232,8 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 		const lastMutationIDChanges = Object.fromEntries(
 			clients.map(c => [c.id, c.mutationID] as const)
 		)
+
+		console.log('lastMutationIDChanges', lastMutationIDChanges)
 
 		if (patch.length > 0 || Object.keys(lastMutationIDChanges).length > 0) {
 			console.log('inserting', req.clientGroupID)

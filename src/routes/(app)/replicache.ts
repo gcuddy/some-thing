@@ -49,11 +49,9 @@ const mutators = new Client<ServerType>()
 		})
 	})
 	.mutation('todo_update', async (tx, { id: ids, data }) => {
-		console.log('todo_update', ids, data)
 		for (const id of ids) {
 			await TodoStore.update(tx, id, todo => {
 				return { ...todo, ...data }
-				// console.log({ todo })
 			})
 		}
 	})
@@ -75,7 +73,13 @@ const mutators = new Client<ServerType>()
 	})
 	.mutation('list_update', async (tx, { id: ids, data }) => {
 		for (const id of ids) {
+			console.log('list_update', { id, data })
 			await ListStore.update(tx, id, list => ({ ...list, ...data }))
+		}
+	})
+	.mutation('list_delete', async (tx, input) => {
+		for (const id of input) {
+			await ListStore.remove(tx, id)
 		}
 	})
 	.build()
