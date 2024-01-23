@@ -12,6 +12,8 @@ export const todos = sqliteTable('todos', {
 
 	index: integer('index').default(0),
 
+	startDate: integer('start_date', { mode: 'timestamp_ms' }),
+
 	// TODO: parent
 	// TODO: tags
 

@@ -1,0 +1,1 @@
+ALTER TABLE todos ADD `start_date` integer;

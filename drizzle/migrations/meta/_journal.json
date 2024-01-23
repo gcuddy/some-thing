@@ -29,6 +29,13 @@
       "when": 1705986282322,
       "tag": "0003_legal_skin",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1706035015082,
+      "tag": "0004_giant_ozymandias",
+      "breakpoints": true
     }
   ]
 }
