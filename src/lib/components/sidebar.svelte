@@ -11,6 +11,7 @@
 	import { TodoStore } from '@/data/todo'
 	import { derived } from 'svelte/store'
 	import SidebarLink from './sidebar-link.svelte'
+	import { filterFn } from '../../routes/(app)/today/filter'
 	let settingsOpen = false
 
 	export let rep: ReplicacheType
@@ -28,6 +29,16 @@
 	const inboxCount = derived(
 		todos,
 		$todos => $todos.filter(todo => !todo.listId && !todo.completed && !todo.startDate).length
+	)
+
+	const todayCount = derived(
+		todos,
+		$todos =>
+			$todos.filter(todo => {
+				if (!todo.startDate) return false
+				if (todo.completed) return false
+				return filterFn(todo)
+			}).length
 	)
 </script>
 
@@ -56,8 +67,9 @@
 				<div class="flex flex-col">
 					<SidebarLink class="font-medium" href="/today">
 						<Star weight="fill" class="mr-1.5 h-4 w-4 text-yellow-400" />
-						Today</SidebarLink
-					>
+						Today
+						<span class="ml-auto text-sm text-muted-foreground/85">{$todayCount}</span>
+					</SidebarLink>
 				</div>
 				<div class="flex flex-col">
 					{#each $lists as list}
