@@ -3,6 +3,7 @@
 </script>
 
 <TodoDetail
+	on:submit
 	todo={{
 		completed: null,
 		notes: '',

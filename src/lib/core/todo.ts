@@ -22,6 +22,7 @@ export const create = zod(insertTodoSchema, async data =>
 	// TODO: should this take an index value? or should it default to lowest
 	useTransaction(tx =>
 		tx.insert(todos).values({
+			...data,
 			id: data.id ?? nanoid(),
 			text: data.text,
 			userId: useUser(),

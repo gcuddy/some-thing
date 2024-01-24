@@ -9,7 +9,13 @@
 	let textInput: HTMLInputElement
 	let textarea: HTMLTextAreaElement
 
-	const dispatch = createEventDispatcher()
+	const dispatch = createEventDispatcher<{
+		submit: {
+			text: string
+			notes: string
+			completed: Date | null
+		}
+	}>()
 
 	let mounted = false
 
@@ -27,7 +33,17 @@
 	})
 </script>
 
-<form bind:this={form} on:submit class="flex flex-col">
+<form
+	bind:this={form}
+	on:submit={() => {
+		dispatch('submit', {
+			text: todo.text ?? '',
+			notes: todo.notes ?? '',
+			completed: todo.completed
+		})
+	}}
+	class="flex flex-col"
+>
 	<div class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4">
 		<label class="sr-only" for="completed"> Completed </label>
 		<input
@@ -36,7 +52,9 @@
 			id="completed"
 			checked={!!todo.completed}
 			name="completed"
-			on:change
+			on:change={e => {
+				todo.completed = e.currentTarget.checked ? new Date() : null
+			}}
 		/>
 		<div class="flex flex-1 flex-col gap-0.5">
 			<input
@@ -45,14 +63,19 @@
 				type="text"
 				on:blur
 				class="text-xl font-medium focus-visible:outline-none focus-visible:ring-0"
-				value={todo.text}
+				bind:value={todo.text}
 				name="text"
+				placeholder="New to-do"
 				on:keydown={e => {
 					console.log({ mounted })
 					if (e.key === 'Enter' && mounted) {
 						e.preventDefault()
 						// await handleChange(e)
-						dispatch('submit')
+						dispatch('submit', {
+							text: todo.text ?? '',
+							notes: todo.notes ?? '',
+							completed: todo.completed
+						})
 					}
 					if (e.key === 'ArrowDown') {
 						e.preventDefault()
@@ -64,7 +87,7 @@
 			/>
 			<textarea
 				bind:this={textarea}
-				value={todo.notes}
+				bind:value={todo.notes}
 				name="notes"
 				use:autosize
 				on:blur
@@ -73,7 +96,11 @@
 				on:keydown={async e => {
 					if (e.key === 'Enter' && e.metaKey) {
 						e.preventDefault()
-						dispatch('submit')
+						dispatch('submit', {
+							text: todo.text ?? '',
+							notes: todo.notes ?? '',
+							completed: todo.completed
+						})
 					}
 					if (e.key === 'ArrowUp') {
 						// check if we're at the top

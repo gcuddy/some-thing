@@ -22,6 +22,7 @@
 	import TodoDetail from './task/[id]/+page.svelte'
 	import type { Todo } from '@/core/todo'
 	import { sleep } from '@/util/sleep'
+	import Mover from '@/components/mover.svelte'
 
 	type $$Props = {
 		filterFn?: (t: Todo) => boolean
@@ -37,7 +38,8 @@
 		// }
 	)()
 	$: console.log({ $t })
-	export let filterFn: (t: Todo) => boolean = t => true
+    // inbox
+	export let filterFn: (t: Todo) => boolean = t =>  !t.listId && !t.startDate
 	const available = derived(t, $t =>
 		$t
 			.filter(t => !t.archivedAt)
@@ -133,7 +135,7 @@
 		onSelect: el => el.querySelector('a')?.click(),
 		disable: () => {
 			if (dialogOpen) return true
-			if ($page.params.id) return true
+			// if ($page.params.id) return true
 			const datePicker = document.querySelector<HTMLDivElement>('[data-date-picker]')
 			if (datePicker) return true
 			console.log('disable - false')
@@ -181,8 +183,20 @@
 				e.stopImmediatePropagation()
 				focused.querySelector<HTMLButtonElement>('[data-date-picker-wrapper] button')?.click()
 			}
+			if ((e.key === 'm' || e.key === 'M') && e.metaKey && e.shiftKey) {
+				// move
+				e.preventDefault()
+
+				const sids = new Set(selected.map(el => el.dataset.todoId!).filter(Boolean))
+				sids.add(focused.dataset.todoId!)
+				selectedIds = Array.from(sids)
+				moverOpen = true
+			}
 		}
 	})
+	$: console.log({ navigator })
+	let moverOpen = false
+	let selectedIds: string[] = []
 	setKeyboardNavigatorContext(navigator)
 
 	export function scrollToTodo(id: string) {
@@ -250,6 +264,15 @@
 			//    const maxIndex =
 			// try to find the first index that is not taken
 		}
+	}}
+/>
+<Mover
+	bind:open={moverOpen}
+	ids={selectedIds}
+	{rep}
+	onMove={() => {
+		selectedIds = []
+		moverOpen = false
 	}}
 />
 {#if $ready}

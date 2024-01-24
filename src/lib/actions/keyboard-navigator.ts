@@ -79,7 +79,7 @@ export const createKeyboardNavigator = (options: Options) => {
 		if (options.disable?.()) {
 			return
 		}
-		if (document.activeElement?.tagName === 'TEXAREA') return
+		if (document.activeElement?.tagName === 'TEXTAREA') return
 		if (
 			document.activeElement?.tagName === 'INPUT' &&
 			(document.activeElement as HTMLInputElement).type === 'text'

@@ -27,7 +27,7 @@
 
 	const inboxCount = derived(
 		todos,
-		$todos => $todos.filter(todo => !todo.listId && !todo.completed).length
+		$todos => $todos.filter(todo => !todo.listId && !todo.completed && !todo.startDate).length
 	)
 </script>
 

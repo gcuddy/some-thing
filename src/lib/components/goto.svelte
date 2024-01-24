@@ -122,7 +122,7 @@
 			if (!cmd) return false
 		}
 
-		if (document.activeElement?.tagName === 'TEXAREA') return false
+		if (document.activeElement?.tagName === 'TEXTAREA') return false
 		if (
 			document.activeElement?.tagName === 'INPUT' &&
 			(document.activeElement as HTMLInputElement).type === 'text'
