@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { syncing } from '$lib/stores/sync'
-	import { ArrowsClockwise, Plus, SlidersHorizontal, Star, Tray } from 'phosphor-svelte'
+	import { ArrowsClockwise, Cloud, Plus, SlidersHorizontal, Star, Tray } from 'phosphor-svelte'
 	import Button from './ui/button/button.svelte'
 	import Settings from '../../routes/(app)/(settings)/settings/+page.svelte'
 	import { goto, preloadData, pushState } from '$app/navigation'
@@ -38,7 +38,8 @@
 				<!-- <span>todo</span> -->
 				<span></span>
 				{#if $syncing}
-					<ArrowsClockwise class="animate-spin" />
+					<!-- <ArrowsClockwise class="animate-spin" /> -->
+                   <Cloud weight="fill" class="animate-pulse text-muted-foreground" />
 				{/if}
 			</div>
 		</div>
