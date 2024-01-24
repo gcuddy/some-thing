@@ -21,10 +21,11 @@
 	import { getReplicache } from './replicache'
 	import TodoDetail from './task/[id]/+page.svelte'
 	import type { Todo } from '@/core/todo'
+	import { sleep } from '@/util/sleep'
 
-    type $$Props = {
-        filterFn: (t: Todo) => boolean
-    }
+	type $$Props = {
+		filterFn: (t: Todo) => boolean
+	}
 
 	// export let rep: Replicache
 	const rep = getReplicache()
@@ -183,6 +184,16 @@
 		}
 	})
 	setKeyboardNavigatorContext(navigator)
+
+	export function scrollToTodo(id: string) {
+		$virtualizer.scrollToIndex($available.findIndex(t => t.id === id))
+		sleep(100).then(() => {
+			const el = ul.querySelector(`li[data-todo-id="${id}"]`)
+			if (el instanceof HTMLElement) {
+				navigator.focus(el)
+			}
+		})
+	}
 
 	let footerBorderBoxSize: ResizeObserverEntry['borderBoxSize']
 </script>
@@ -355,7 +366,8 @@
 												const idsToChange = Array.from(ids).filter(id => {
 													const todo = $available.find(t => t.id === id)
 													if (!todo) return false
-													if (new Date(todo.startDate)?.toISOString() === date?.toISOString()) return false
+													if (new Date(todo.startDate)?.toISOString() === date?.toISOString())
+														return false
 													return true
 												})
 												console.log('onChange!', { idsToChange, date })

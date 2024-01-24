@@ -182,7 +182,7 @@
 			<Command.Group heading="Lists">
 				{#each results.lists as list}
 					<Command.Item
-                        class="aria-selected:bg-accent/50 aria-selected:text-foreground"
+						class="aria-selected:bg-accent/50 aria-selected:text-foreground"
 						onSelect={async () => {
 							open = false
 							if ('href' in list.data) {
@@ -211,7 +211,20 @@
 		{#if results.todos.length}
 			<Command.Group heading="Todos">
 				{#each results.todos as todo}
-					<Command.Item class="aria-selected:bg-accent/50 aria-selected:text-foreground" value={todo.data.id}>
+					<Command.Item
+						onSelect={async () => {
+                            // TODO: show in context
+							if (todo.data.listId) {
+								open = false
+								await goto(`/list/${todo.data.listId}?task=${todo.data.id}`)
+							} else {
+								open = false
+								goto(`/task/${todo.data.id}`)
+							}
+						}}
+						class="aria-selected:bg-accent/50 aria-selected:text-foreground"
+						value={todo.data.id}
+					>
 						<!-- dummy checkbox -->
 						<div class="mr-1.5 h-3 w-3 rounded border border-muted-foreground/75"></div>
 						{todo.data.text}</Command.Item
