@@ -24,7 +24,7 @@
 	import { sleep } from '@/util/sleep'
 
 	type $$Props = {
-		filterFn: (t: Todo) => boolean
+		filterFn?: (t: Todo) => boolean
 	}
 
 	// export let rep: Replicache
@@ -255,60 +255,62 @@
 {#if $ready}
 	<div bind:this={wrapper} class="flex h-full grow flex-col">
 		<div class="header" bind:contentRect={headerContentRect}>
-			<button
-				disabled={!$available.length}
-				on:click={async () => {
-					await rep.mutate.todo_update({
-						id: $available.map(t => t.id),
-						data: {
-							completed: !allFiltered ? new Date() : null
+			<slot name="header">
+				<button
+					disabled={!$available.length}
+					on:click={async () => {
+						await rep.mutate.todo_update({
+							id: $available.map(t => t.id),
+							data: {
+								completed: !allFiltered ? new Date() : null
+							}
+						})
+					}}
+				>
+					{#if allFiltered}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							fill="#000000"
+							viewBox="0 0 256 256"
+							><path
+								d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"
+							></path></svg
+						>
+					{:else}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							fill="#000000"
+							viewBox="0 0 256 256"
+							><path
+								d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
+							></path></svg
+						>
+					{/if}
+					<VisuallyHidden>Mark all as {allFiltered ? 'un-complete' : 'completed'}</VisuallyHidden>
+				</button>
+				<form
+					on:submit|preventDefault={async () => {
+						const text = newTodo.trim()
+						if (text === '') {
+							return
 						}
-					})
-				}}
-			>
-				{#if allFiltered}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="16"
-						height="16"
-						fill="#000000"
-						viewBox="0 0 256 256"
-						><path
-							d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"
-						></path></svg
-					>
-				{:else}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="16"
-						height="16"
-						fill="#000000"
-						viewBox="0 0 256 256"
-						><path
-							d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
-						></path></svg
-					>
-				{/if}
-				<VisuallyHidden>Mark all as {allFiltered ? 'un-complete' : 'completed'}</VisuallyHidden>
-			</button>
-			<form
-				on:submit|preventDefault={async () => {
-					const text = newTodo.trim()
-					if (text === '') {
-						return
-					}
-					console.log({ $available })
-					const minIndex = $available[0]?.index ?? 0
-					console.log({ minIndex })
-					const index = minIndex - 100
-					console.log({ index })
-					await rep.mutate.todo_create({ text, index })
-					newTodo = ''
-				}}
-			>
-				<input placeholder="What needs to be done?" bind:value={newTodo} type="text" />
-				<!-- <button>Add</button> -->
-			</form>
+						console.log({ $available })
+						const minIndex = $available[0]?.index ?? 0
+						console.log({ minIndex })
+						const index = minIndex - 100
+						console.log({ index })
+						await rep.mutate.todo_create({ text, index })
+						newTodo = ''
+					}}
+				>
+					<input placeholder="What needs to be done?" bind:value={newTodo} type="text" />
+					<!-- <button>Add</button> -->
+				</form>
+			</slot>
 		</div>
 
 		<!-- {JSON.stringify($t)} -->
@@ -479,31 +481,33 @@
 			</div>
 		</div>
 		<div class="footer border-t py-2" bind:borderBoxSize={footerBorderBoxSize}>
-			<div class="h-9 text-sm">
-				<p>{$available.filter(t => !t.completed).length} items left</p>
+			<slot name="footer">
+				<div class="h-9 text-sm">
+					<p>{$available.filter(t => !t.completed).length} items left</p>
 
-				{#each ['All', 'Active', 'Completed'] as filterState}
-					<a
-						href="/?filter={filterState.toLowerCase()}"
-						class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
-					>
-				{/each}
-
-				<div>
-					{#if $available.some(t => t.completed)}
-						<button
-							on:click={async () => {
-								await rep.mutate.todo_delete({
-									ids: $available.filter(t => t.completed).map(t => t.id),
-									archive: true
-								})
-							}}
+					{#each ['All', 'Active', 'Completed'] as filterState}
+						<a
+							href="/?filter={filterState.toLowerCase()}"
+							class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
 						>
-							Clear completed
-						</button>
-					{/if}
+					{/each}
+
+					<div>
+						{#if $available.some(t => t.completed)}
+							<button
+								on:click={async () => {
+									await rep.mutate.todo_delete({
+										ids: $available.filter(t => t.completed).map(t => t.id),
+										archive: true
+									})
+								}}
+							>
+								Clear completed
+							</button>
+						{/if}
+					</div>
 				</div>
-			</div>
+			</slot>
 		</div>
 	</div>
 {/if}
