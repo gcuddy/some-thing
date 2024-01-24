@@ -8,6 +8,7 @@
 
 	type $$Props = DialogPrimitive.ContentProps & {
 		overlay?: boolean
+        overlayClass?: string
 	}
 
 	let className: $$Props['class'] = undefined
@@ -27,11 +28,13 @@
 	}
 
 	export let overlay = true
-   export let overlayClass = ''
+	export let overlayClass = ''
 </script>
 
 <Dialog.Portal>
-	<Dialog.Overlay class={cn('fixed inset-0 z-50 bg-background/50 backdrop-blur-sm')} />
+	<Dialog.Overlay
+		class={cn('fixed inset-0 z-50 bg-background/50 backdrop-blur-sm', overlayClass)}
+	/>
 	{#if $open}
 		<div
 			transition:transition={transitionConfig}
