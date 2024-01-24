@@ -6,6 +6,7 @@
 	import { PARTYKIT_HOST } from './env'
 	import { setReplicache } from './replicache'
 	import Sidebar from '$lib/components/sidebar.svelte'
+	import Goto from '@/components/goto.svelte'
 	export let data: LayoutData
 
 	if (data.replicache) setReplicache(data.replicache)
@@ -43,6 +44,7 @@
 	})
 </script>
 
+
 <div class="flex h-full w-full flex-row items-stretch overflow-hidden">
 	<aside class="w-60 max-sm:hidden">
 		{#if data.replicache}
@@ -56,6 +58,10 @@
 		{/if}
 	</div>
 </div>
+{#if data.replicache}
+    <Goto rep={data.replicache} />
+{/if}
+
 
 <style>
 	:global(html) {

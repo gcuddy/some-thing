@@ -27,10 +27,11 @@
 	}
 
 	export let overlay = true
+   export let overlayClass = ''
 </script>
 
 <Dialog.Portal>
-	<Dialog.Overlay class={cn('fixed inset-0 z-50 bg-background/50 backdrop-blur-0')} />
+	<Dialog.Overlay class={cn('fixed inset-0 z-50 bg-background/50 backdrop-blur-sm')} />
 	{#if $open}
 		<div
 			transition:transition={transitionConfig}
