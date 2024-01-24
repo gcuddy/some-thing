@@ -33,7 +33,7 @@
 
 <Dialog.Portal>
 	<Dialog.Overlay
-		class={cn('fixed inset-0 z-50 bg-background/50 backdrop-blur-sm', overlayClass)}
+		class={cn('fixed inset-0 z-50 bg-background/50', overlayClass)}
 	/>
 	{#if $open}
 		<div

@@ -2,6 +2,7 @@
 	import autosize from '$lib/actions/autosize'
 	import type { Todo } from '@/core/todo'
 	import { createEventDispatcher, onDestroy, onMount } from 'svelte'
+	import DatePicker from './ui/date-picker.svelte'
 
 	export let todo: Pick<Todo, 'text' | 'notes' | 'completed'>
 
@@ -111,6 +112,9 @@
 					}
 				}}
 			/>
+			<div class="flex">
+				<DatePicker />
+			</div>
 		</div>
 	</div>
 

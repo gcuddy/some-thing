@@ -38,8 +38,8 @@
 		// }
 	)()
 	$: console.log({ $t })
-    // inbox
-	export let filterFn: (t: Todo) => boolean = t =>  !t.listId && !t.startDate
+	// inbox
+	export let filterFn: (t: Todo) => boolean = t => !t.listId && !t.startDate
 	const available = derived(t, $t =>
 		$t
 			.filter(t => !t.archivedAt)
@@ -112,6 +112,18 @@
 	let headerContentRect: DOMRectReadOnly
 
 	let wrapper: HTMLDivElement
+
+	async function pushHrefToModal(href: string) {
+		// run `load` functions (or rather, get the result of the `load` functions
+		// that are already running because of `data-sveltekit-preload-data`)
+		const result = await preloadData(href)
+
+		if (result.type === 'loaded' && result.status === 200) {
+			pushState(href, { selected: result.data.id })
+		} else {
+			goto(href)
+		}
+	}
 
 	function calculateVirtualListHeight() {
 		console.log('calculating')
@@ -425,22 +437,20 @@
 									<a
 										class="flex cursor-default items-center"
 										href="/task/{todo.id}"
-										on:click={async e => {
+										on:click={e => {
+											console.log('click', e)
+											if (e.metaKey || e.ctrlKey || innerWidth < 640) return
+											e.preventDefault()
+											if (!e.isTrusted) {
+												// indicating it came from .click programattic call
+												pushHrefToModal(e.currentTarget.href)
+											}
+										}}
+										on:dblclick={async e => {
 											// if opening new tab or screen is too small, bail
 											if (e.metaKey || e.ctrlKey || innerWidth < 640) return
 											e.preventDefault()
-
-											const { href } = e.currentTarget
-
-											// run `load` functions (or rather, get the result of the `load` functions
-											// that are already running because of `data-sveltekit-preload-data`)
-											const result = await preloadData(href)
-
-											if (result.type === 'loaded' && result.status === 200) {
-												pushState(href, { selected: result.data.id })
-											} else {
-												goto(href)
-											}
+											await pushHrefToModal(e.currentTarget.href)
 										}}
 									>
 										{#if editing === todo.id}
@@ -472,14 +482,7 @@
 												autofocus
 											/>
 										{:else}
-											<span
-												class:done={todo.completed}
-												role="listitem"
-												on:dblclick|stopPropagation|preventDefault={() => {
-													// editing
-													editing = todo.id
-												}}>{todo.text}</span
-											>
+											<span class:done={todo.completed} role="listitem">{todo.text}</span>
 										{/if}
 										{#if todo.startDate}
 											<span class="ml-1 text-xs text-gray-500">{todo.startDate}</span>
@@ -545,7 +548,7 @@
 	openFocus={'[data-todo-input]'}
 >
 	<!-- Move to provider -->
-	<Dialog.Content class="p-1">
+	<Dialog.Content class="p-1 sm:rounded-md">
 		<TodoDetail
 			on:submit={() => {
 				console.log('submit')

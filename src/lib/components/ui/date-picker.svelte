@@ -23,12 +23,13 @@
 	})
 	export let value: DateValue | undefined = undefined
 	export let onChange: (value: Date | undefined | null) => void = () => {}
+	export let open = false
+
 	let className = ''
 	export { className as class }
 
 	const format = getLocalTimeZone()
 
-	let open = false
 	let commandShowing = false
 	let searchValue = ''
 
@@ -426,6 +427,10 @@
 
 <svelte:window
 	on:keydown={e => {
+		if (open && e.key === 'Escape') {
+			open = false
+			return
+		}
 		if (open && !commandShowing) {
 			// console.log('OPEN', e)
 			// if arrow key, ignore,
@@ -506,7 +511,7 @@
 								onSelect={() => {
 									value = result.date
 									open = false
-                                    onChange(result.date.toDate(getLocalTimeZone()))
+									onChange(result.date.toDate(getLocalTimeZone()))
 									tick().then(() => {
 										searchValue = ''
 									})
@@ -549,7 +554,7 @@
 					on:click={() => {
 						value = today(getLocalTimeZone())
 						open = false
-                        onChange(value?.toDate(getLocalTimeZone()))
+						onChange(value?.toDate(getLocalTimeZone()))
 					}}
 					class="inline-flex items-center rounded p-1 text-sm font-medium hover:bg-accent focus:bg-accent focus-visible:outline-none"
 				>
@@ -560,7 +565,7 @@
 					on:click={() => {
 						value = today(getLocalTimeZone()).add({ days: 1 })
 						open = false
-                        onChange(value?.toDate(getLocalTimeZone()))
+						onChange(value?.toDate(getLocalTimeZone()))
 					}}
 					data-button-tomorrow
 					bind:this={tomorrowButton}
@@ -591,7 +596,7 @@
 				on:click={() => {
 					value = undefined
 					open = false
-                    onChange(null)
+					onChange(null)
 				}}>Clear</Button
 			>
 		{/if}
