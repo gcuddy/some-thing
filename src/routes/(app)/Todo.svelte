@@ -8,8 +8,10 @@
 	import * as Dialog from '$lib/components/ui/dialog'
 	import VisuallyHidden from '$lib/components/visually-hidden.svelte'
 	import { TodoStore } from '$lib/data/todo'
+	import DatePicker from '@/components/ui/date-picker.svelte'
 	import { distributeItems } from '@/util/number'
 	import { processTasksFromText } from '@/util/text'
+	import { fromDate, getLocalTimeZone } from '@internationalized/date'
 	import { createVirtualizer } from '@tanstack/svelte-virtual'
 	import { NoteBlank } from 'phosphor-svelte'
 	import { flip } from 'svelte/animate'
@@ -124,6 +126,8 @@
 		disable: () => {
 			if (dialogOpen) return true
 			if ($page.params.id) return true
+			const datePicker = document.querySelector<HTMLDivElement>('[data-date-picker]')
+			if (datePicker) return true
 			console.log('disable - false')
 			return false
 		},
@@ -162,6 +166,12 @@
 					})
 				}
 				return true
+			}
+			if (e.key === 's' && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault()
+				e.stopPropagation()
+				e.stopImmediatePropagation()
+				focused.querySelector<HTMLButtonElement>('[data-date-picker-wrapper] button')?.click()
 			}
 		}
 	})
@@ -284,9 +294,8 @@
 		</div>
 
 		<!-- {JSON.stringify($t)} -->
-		<div class="relative flex h-full grow flex-col items-stretch overflow-hidden">
+		<div class="relative flex h-full grow flex-col items-stretch overflow-hidden px-10">
 			<div class="flex h-full flex-auto flex-col overflow-hidden">
-				<!-- This is goofy as hell, gotta be a better way... -->
 				<div
 					bind:this={virtualListEl}
 					style:height={virtualListHeight}
@@ -320,6 +329,40 @@
 								}}
 							>
 								<div class="flex items-center gap-2.5">
+									<div
+										data-date-picker-wrapper
+										class="flex items-center justify-center opacity-0 transition hover:opacity-100"
+									>
+										<DatePicker
+											value={todo.startDate
+												? fromDate(new Date(todo.startDate), getLocalTimeZone())
+												: undefined}
+											onChange={async date => {
+												const selected = navigator.selected
+												const ids = new Set([todo.id])
+												if (selected.length) {
+													for (const el of selected) {
+														if (el.dataset.todoId) ids.add(el.dataset.todoId)
+													}
+												}
+												const idsToChange = Array.from(ids).filter(id => {
+													const todo = $available.find(t => t.id === id)
+													if (!todo) return false
+													if (todo.startDate?.toISOString() === date?.toISOString()) return false
+													return true
+												})
+												console.log('onChange!', { idsToChange, date })
+												if (!idsToChange.length) return
+												await rep.mutate.todo_update({
+													id: Array.from(ids),
+													data: {
+														startDate: date ?? null
+													}
+												})
+											}}
+											class="h-4 w-4 text-muted-foreground"
+										/>
+									</div>
 									<input
 										on:change={async e => {
 											if (e.target instanceof HTMLInputElement) {
@@ -394,7 +437,11 @@
 												}}>{todo.text}</span
 											>
 										{/if}
-
+										{#if todo.startDate}
+											<span class="ml-1 text-xs text-gray-500"
+												>{todo.startDate}</span
+											>
+										{/if}
 										{#if !!todo.notes}
 											<NoteBlank weight="light" class="ml-1.5 h-3.5 w-3.5 text-gray-600" />
 										{/if}
@@ -414,7 +461,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="footer py-2 border-t" bind:borderBoxSize={footerBorderBoxSize}>
+		<div class="footer border-t py-2" bind:borderBoxSize={footerBorderBoxSize}>
 			<div class="h-9 text-sm">
 				<p>{$available.filter(t => !t.completed).length} items left</p>
 

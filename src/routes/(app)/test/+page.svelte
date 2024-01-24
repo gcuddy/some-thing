@@ -2,4 +2,4 @@
 	import DatePicker from '@/components/ui/date-picker.svelte'
 </script>
 
-<DatePicker>Pick me</DatePicker>
+<DatePicker></DatePicker>

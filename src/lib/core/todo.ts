@@ -9,7 +9,9 @@ import { useUser } from './user'
 
 export const Todo = createSelectSchema(todos, {
 	completed: z.coerce.date(),
-	archivedAt: z.coerce.date()
+	archivedAt: z.coerce.date(),
+	timeUpdated: z.coerce.date(),
+	startDate: z.coerce.date()
 })
 
 export type Todo = z.infer<typeof Todo>
@@ -51,6 +53,7 @@ export const update = zod(
 		data: Todo.omit({ id: true }).partial()
 	}),
 	async ({ id, data }) => {
+		console.log('updating id with data', id, data)
 		return useTransaction(async tx =>
 			tx
 				.update(todos)

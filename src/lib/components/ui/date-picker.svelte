@@ -14,16 +14,19 @@
 	} from '@internationalized/date'
 	import { Button } from './button'
 	import { cn } from '@/util/style'
-	import { Star, Calendar as CalendarIcon } from 'phosphor-svelte'
+	import { Star, Calendar as CalendarIcon, CalendarPlus } from 'phosphor-svelte'
 	import { tick, type ComponentType, type ComponentProps, SvelteComponent } from 'svelte'
+	import { toDate } from '@melt-ui/svelte/internal/helpers/date'
 	export let locale = 'en-US'
 	const df = new DateFormatter(locale, {
 		dateStyle: 'short'
 	})
-	let value: DateValue | undefined = undefined
+	export let value: DateValue | undefined = undefined
+	export let onChange: (value: Date | undefined | null) => void = () => {}
+	let className = ''
+	export { className as class }
 
 	const format = getLocalTimeZone()
-	console.log({ format })
 
 	let open = false
 	let commandShowing = false
@@ -247,13 +250,10 @@
 
 			const dates: Array<DateValue> = []
 			let loop = 0
-			console.log({ dayOfWeek })
 			while (dates.length < (daysOfWeek.length > 1 ? 1 : 3)) {
 				loop++
 				const dayIndex = getDayOfWeek(date, locale)
-				// console.log('date', date.toDate())
 				if (dayIndex === dayOfWeek) {
-					console.log()
 					dates.push(date)
 				}
 				date = date.add({ days: 1 })
@@ -299,7 +299,6 @@
 		const num = numMatch ? parseInt(numMatch) : NaN
 
 		const yearMatch = v.match(yearRegex)?.[0]
-		console.log({ monthMatches })
 
 		for (const month of monthMatches) {
 			let date = today(getLocalTimeZone())
@@ -309,13 +308,13 @@
 			// either add first of month, or add num match (assuming under 31 days)
 
 			if (month < date.month) {
-				console.log('adding year, month < date.month', month, date.month)
+				// console.log('adding year, month < date.month', month, date.month)
 				date = date.add({ years: 1 })
 			} else if (month === date.month && num < date.day) {
 				date = date.add({ years: 1 })
 			}
 			if (!Number.isNaN(num) && num <= 31) {
-				console.log({ num, month })
+				// console.log({ num, month })
 				date = date.set({ month, day: num })
 				dates.push(date)
 			} else {
@@ -428,15 +427,16 @@
 <svelte:window
 	on:keydown={e => {
 		if (open && !commandShowing) {
+			// console.log('OPEN', e)
 			// if arrow key, ignore,
 			//
 			if (e.key === 'ArrowDown') {
 				// focus on next element
 				const els = focusable.map(f => f())
 				const index = els.findIndex(el => el === document.activeElement)
-				console.log({ index })
+				// console.log({ index })
 				const contains = calendarWrapper.contains(document.activeElement)
-				console.log({ contains })
+				// console.log({ contains })
 				if (contains) return
 				if (index === -1) {
 					els[0]?.focus()
@@ -479,12 +479,14 @@
 >
 	<Popover.Trigger>
 		<!-- hm.... don't love this -->
-		{value ? df.format(value.toDate(getLocalTimeZone())) : 'Select a date   '}
-		<slot />
+		<!-- {value ? df.format(value.toDate(getLocalTimeZone())) : 'Select a date   '} -->
+		<slot>
+			<CalendarPlus class={cn('h-5 w-5 text-muted-foreground', className)} />
+		</slot>
 	</Popover.Trigger>
 	<!-- {value ? df.format(value.toDate(getLocalTimeZone())) : "Select a date"} -->
 
-	<Popover.Content class="flex w-64 flex-col gap-2 rounded-lg p-2">
+	<Popover.Content data-date-picker class="flex w-64 flex-col gap-2 rounded-lg p-2">
 		{#if commandShowing}
 			<Command.Root shouldFilter={false}>
 				<Command.Input
@@ -505,6 +507,7 @@
 								onSelect={() => {
 									value = result.date
 									open = false
+                                    onChange(result.date.toDate(getLocalTimeZone()))
 									tick().then(() => {
 										searchValue = ''
 									})
@@ -536,7 +539,7 @@
 				bind:this={dummyInput}
 			>
 				<div class="relative w-fit">
-					<div class="animate-blink absolute left-0 h-full w-[2px] rounded bg-gray-400"></div>
+					<div class="absolute left-0 h-full w-[2px] animate-blink rounded bg-gray-400"></div>
 					<span class="text-xs font-medium text-muted-foreground">When</span>
 				</div>
 			</div>
@@ -547,6 +550,7 @@
 					on:click={() => {
 						value = today(getLocalTimeZone())
 						open = false
+                        onChange(value?.toDate(getLocalTimeZone()))
 					}}
 					class="inline-flex items-center rounded p-1 text-sm font-medium hover:bg-accent focus:bg-accent focus-visible:outline-none"
 				>
@@ -557,6 +561,7 @@
 					on:click={() => {
 						value = today(getLocalTimeZone()).add({ days: 1 })
 						open = false
+                        onChange(value?.toDate(getLocalTimeZone()))
 					}}
 					data-button-tomorrow
 					bind:this={tomorrowButton}
@@ -573,7 +578,8 @@
 						handleCalendarEvent(event)
 					}}
 					onValueChange={value => {
-						console.log({ value })
+						console.log(`onValueChange`, { value })
+						onChange(value?.toDate(getLocalTimeZone()))
 						if (value) {
 							open = false
 						}
@@ -586,6 +592,7 @@
 				on:click={() => {
 					value = undefined
 					open = false
+                    onChange(null)
 				}}>Clear</Button
 			>
 		{/if}

@@ -76,9 +76,9 @@ export const createKeyboardNavigator = (options: Options) => {
 	}
 
 	const handleKeydown = async (e: KeyboardEvent) => {
-        if (options.disable?.()) {
-					return
-				}
+		if (options.disable?.()) {
+			return
+		}
 		if (document.activeElement?.tagName === 'TEXAREA') return
 		if (
 			document.activeElement?.tagName === 'INPUT' &&
@@ -86,7 +86,6 @@ export const createKeyboardNavigator = (options: Options) => {
 		)
 			return
 		const shiftTab = e.shiftKey && e.key === 'Tab'
-		console.log({ shiftTab })
 		if (options.onKeydown) {
 			const f = focused()
 			if (f) {
@@ -103,9 +102,7 @@ export const createKeyboardNavigator = (options: Options) => {
 		}
 		if (e.key === 'j') move(1)
 		if (e.key === 'k') move(-1)
-		console.log({ e })
 		if (e.key === 'ArrowUp' || shiftTab) {
-			console.log('up')
 			e.preventDefault()
 			move(-1)
 			return
@@ -183,7 +180,6 @@ export const createKeyboardNavigator = (options: Options) => {
 		match.setAttribute('data-selected', 'true')
 	}
 
-	console.log({ options })
 	if (options.initialFocus) {
 		focus(options.initialFocus)
 	}
@@ -214,6 +210,9 @@ export const createKeyboardNavigator = (options: Options) => {
 		},
 		get focused() {
 			return focused()
+		},
+		get selected() {
+			return selected()
 		},
 		selectAdjacent,
 		...store
