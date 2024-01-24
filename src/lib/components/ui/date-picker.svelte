@@ -485,7 +485,7 @@
 	<Popover.Trigger>
 		<!-- hm.... don't love this -->
 		<!-- {value ? df.format(value.toDate(getLocalTimeZone())) : 'Select a date   '} -->
-		<slot>
+		<slot {value}>
 			<CalendarPlus class={cn('h-5 w-5 text-muted-foreground', className)} />
 		</slot>
 	</Popover.Trigger>

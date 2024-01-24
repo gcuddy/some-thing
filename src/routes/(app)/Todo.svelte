@@ -23,9 +23,11 @@
 	import type { Todo } from '@/core/todo'
 	import { sleep } from '@/util/sleep'
 	import Mover from '@/components/mover.svelte'
+	import { formatDate } from '@/util/date'
 
 	type $$Props = {
 		filterFn?: (t: Todo) => boolean
+		showDates?: boolean
 	}
 
 	// export let rep: Replicache
@@ -40,6 +42,7 @@
 	$: console.log({ $t })
 	// inbox
 	export let filterFn: (t: Todo) => boolean = t => !t.listId && !t.startDate
+	export let showDates = true
 	const available = derived(t, $t =>
 		$t
 			.filter(t => !t.archivedAt)
@@ -453,6 +456,21 @@
 											await pushHrefToModal(e.currentTarget.href)
 										}}
 									>
+										{#if showDates && todo.startDate}
+											{@const date = formatDate(todo.startDate)}
+											{#if date.type === 'today'}
+												<svelte:component
+													this={date.icon}
+													{...date.props}
+													class="mr-1.5 h-4 w-4 {date.props.class ?? ''}"
+												/>
+											{:else}
+												<div class="mr-1.5 rounded bg-secondary/80 text-secondary-foreground/70 px-1.5 py-0.5 text-xs font-semibold">
+													{date.shortText}
+												</div>
+											{/if}
+											<!-- <span class="ml-1 text-xs text-gray-500">{todo.startDate}</span> -->
+										{/if}
 										{#if editing === todo.id}
 											<!-- svelte-ignore a11y-autofocus -->
 											<input
@@ -484,9 +502,7 @@
 										{:else}
 											<span class:done={todo.completed} role="listitem">{todo.text}</span>
 										{/if}
-										{#if todo.startDate}
-											<span class="ml-1 text-xs text-gray-500">{todo.startDate}</span>
-										{/if}
+
 										{#if !!todo.notes}
 											<NoteBlank weight="light" class="ml-1.5 h-3.5 w-3.5 text-gray-600" />
 										{/if}

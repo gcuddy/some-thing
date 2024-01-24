@@ -15,6 +15,7 @@
 	} from '@internationalized/date'
 	import { Calendar, CalendarPlus, Star } from 'phosphor-svelte'
 	import { cn } from '@/util/style'
+	import { formatDate } from '@/util/date'
 
 	export let data
 
@@ -95,73 +96,6 @@
 		console.log('destroy')
 		mounted = false
 	})
-
-	// TODO: allow other locales
-	const df = new DateFormatter('en-US', {
-		weekday: 'short',
-		month: 'short',
-		day: 'numeric'
-	})
-
-	const future_df = new DateFormatter('en-US', {
-		day: 'numeric',
-		month: 'short',
-		year: 'numeric'
-	})
-
-	function formatDate(date: Date | string): {
-		text: string
-		icon: ComponentType
-		props: Record<string, unknown>
-	} {
-		const d = new Date(date)
-		const dt = fromDate(d, getLocalTimeZone())
-		const t = today(getLocalTimeZone())
-
-		if (isSameDay(dt, t)) {
-			return {
-				text: 'Today',
-				icon: Star,
-				props: {
-					weight: 'fill',
-					class: 'text-yellow-400'
-				}
-			}
-		}
-
-		const tomorrow = t.add({ days: 1 })
-
-		if (isSameDay(dt, tomorrow)) {
-			return {
-				text: 'Tomorrow',
-				icon: Calendar,
-				props: {
-					weight: 'fill',
-					class: 'text-red-400'
-				}
-			}
-		}
-
-		if (isSameYear(dt, t)) {
-			return {
-				text: df.format(dt.toDate()),
-				icon: Calendar,
-				props: {
-					weight: 'fill',
-					class: 'text-accent'
-				}
-			}
-		}
-
-		return {
-			text: future_df.format(dt.toDate()),
-			icon: Calendar,
-			props: {
-				weight: 'fill',
-				class: 'text-accent'
-			}
-		}
-	}
 
 	export function getState() {
 		const formData = new FormData(form)
@@ -280,14 +214,25 @@
 						bind:open={isDatePickerOpen}
 					>
 						{#if !$s?.startDate}
-							<CalendarPlus class="h-5 w-5 text-muted-foreground" />
-							When
+							<div class={cn("flex items-center gap-1 p-1 rounded hover:bg-secondary", isDatePickerOpen && "bg-secondary")}>
+								<CalendarPlus class="h-4 w-4 text-muted-foreground" />
+								<span class="text-xs text-muted-foreground">When</span>
+							</div>
 						{:else}
 							{@const { text, icon, props } = formatDate($s.startDate)}
-							<div class={cn("flex items-center p-1 rounded hover:bg-secondary", isDatePickerOpen && "bg-secondary ")}>
-                                <svelte:component this={icon} {...props} class="mr-1.5 h-4 w-4 {props.class ?? ''}" />
-                                <span class="text-sm">{text}</span>
-                            </div>
+							<div
+								class={cn(
+									'flex items-center rounded p-1 hover:bg-secondary',
+									isDatePickerOpen && 'bg-secondary '
+								)}
+							>
+								<svelte:component
+									this={icon}
+									{...props}
+									class="mr-1.5 h-4 w-4 {props.class ?? ''}"
+								/>
+								<span class="text-sm">{text}</span>
+							</div>
 						{/if}
 					</DatePicker>
 				</div>
