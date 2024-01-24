@@ -6,7 +6,8 @@
 	import { PARTYKIT_HOST } from './env'
 	import { setReplicache } from './replicache'
 	import Sidebar from '$lib/components/sidebar.svelte'
-	import Goto from '@/components/goto.svelte'
+	import Goto from '@/components/goto/goto.svelte'
+	import { gotoOpen } from '@/stores/goto'
 	export let data: LayoutData
 
 	if (data.replicache) setReplicache(data.replicache)
@@ -59,7 +60,7 @@
 	</div>
 </div>
 {#if data.replicache}
-    <Goto rep={data.replicache} />
+    <Goto bind:open={$gotoOpen} rep={data.replicache} />
 {/if}
 
 

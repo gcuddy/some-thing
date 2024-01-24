@@ -4,6 +4,8 @@
 	import type { Replicache } from 'replicache'
 	import type { Snapshot } from './$types'
 	import { fromDate, getLocalTimeZone, isToday } from '@internationalized/date'
+	import { afterNavigate } from '$app/navigation'
+	import { recents } from '@/components/goto/store'
 	const rep = getContext('__replicache') as Replicache
 	console.log({ rep })
 
@@ -15,6 +17,10 @@
 	}
 
 	const tz = getLocalTimeZone()
+
+	afterNavigate(() => {
+		recents.add('Today')
+	})
 </script>
 
 <div class="mx-auto w-[calc(100%)] grow">

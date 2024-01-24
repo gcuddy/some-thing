@@ -6,6 +6,8 @@
 	import commandScore from 'command-score'
 	import { createId } from '@/util/nanoid'
 	import { goto } from '$app/navigation'
+	import { Plus } from 'phosphor-svelte'
+	import { cn } from '@/util/style'
 
 	export let ids: Array<string>
 	export let rep: ReplicacheType
@@ -27,13 +29,18 @@
 </script>
 
 <Command.Dialog
-	dialogClass="max-w-sm"
+	dialogClass="max-w-xs"
 	class="text-popover-foreground"
 	bind:open
 	openFocus={null}
 	shouldFilter={false}
 >
-	<Command.Input bind:value={searchValue} autofocus placeholder="Type a command or search..." />
+	<Command.Input
+		wrapperClass="border-gray-600"
+		bind:value={searchValue}
+		autofocus
+		placeholder="Move"
+	/>
 	<Command.List>
 		<Command.Empty>No results found.</Command.Empty>
 		<!-- <Command.Separator /> -->
@@ -41,7 +48,7 @@
 			{#each results as list}
 				<Command.Item
 					onSelect={async () => {
-						console.log("HELLO???", ids)
+						console.log('HELLO???', ids)
 						await rep.mutate.todo_update({
 							id: ids,
 							data: {
@@ -56,28 +63,35 @@
 				</Command.Item>
 			{/each}
 		</Command.Group>
-		{#if results.every(r => r.name !== searchValue)}
-			<!-- <Command.Item
-				onSelect={async () => {
-					const id = createId()
-					await rep.mutate.list_create({
-						name: searchValue,
-						id,
-						notes: ''
-					})
-					await rep.mutate.todo_update({
-						id: ids,
-						data: {
-							listId: id
-						}
-					})
-                    onMove()
-					// await goto(`/list/${id}`)
-				}}
-				value={searchValue}
-			>
-				Create list "{searchValue}"
-			</Command.Item> -->
+		{#if searchValue && results.every(r => r.name !== searchValue)}
+			{#if results.length}
+				<Command.Separator alwaysRender class="bg-gray-600" />
+			{/if}
+			<Command.Group class={cn(results.length && '!pt-1')}>
+				<Command.Item
+					onSelect={async () => {
+						const id = createId()
+						await rep.mutate.list_create({
+							name: searchValue,
+							id,
+							notes: ''
+						})
+						await rep.mutate.todo_update({
+							id: ids,
+							data: {
+								listId: id
+							}
+						})
+						onMove()
+						// await goto(`/list/${id}`)
+					}}
+					value={searchValue}
+					class="text-white"
+				>
+					<Plus class="mr-1.5 h-4 w-4 text-muted-foreground" />
+					Create list "{searchValue}"
+				</Command.Item>
+			</Command.Group>
 		{/if}
 	</Command.List>
 </Command.Dialog>

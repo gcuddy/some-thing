@@ -5,6 +5,10 @@
 	import Footer from '@/components/footer.svelte'
 	import * as Dialog from '@/components/ui/dialog'
 	import NewTodo from '@/components/new-todo.svelte'
+	import { page } from '$app/stores'
+	import { afterNavigate, replaceState } from '$app/navigation'
+	import { sleep } from '@/util/sleep'
+	import { recents } from '@/components/goto/store'
 	export let data
 
 	let list: ReturnType<ReturnType<typeof ListStore.get.watch>>
@@ -17,10 +21,44 @@
 	$: console.log({ $list })
 
 	let newTodoOpen = false
+
+	let todo: Todo
+
+	$: if ($list && data.replicache && $page.url.searchParams.has('task')) {
+		const id = $page.url.searchParams.get('task')
+		sleep(100).then(() => {
+			if (id && todo) {
+				console.log({ id })
+				todo.scrollToTodo(id)
+				// todo?.scrollToTodo(id)
+				// delete from params
+				// replaceState('', {})
+			}
+		})
+	}
+
+	$: if ($list) {
+		recents.add({
+			type: 'list',
+			data: $list
+		})
+	}
+
+	// afterNavigate(() => {
+	// 	console.log('AFTER NAVIGATE')
+	// 	if ($list) {
+	// 		recents.add({
+	// 			type: 'list',
+	// 			data: $list
+	// 		})
+	// 		console.log({ $recents })
+	// 	}
+	// })
 </script>
 
 {#if $list && data.replicache}
 	<Todo
+		bind:this={todo}
 		filterFn={todo => {
 			if (todo.listId === data.id) return true
 			return false

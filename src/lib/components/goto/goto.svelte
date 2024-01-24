@@ -1,17 +1,28 @@
 <script lang="ts">
 	import * as Command from '$lib/components/ui/command'
 	import { SvelteComponent, onMount, tick, type ComponentType } from 'svelte'
-	import { type ReplicacheType } from '../../routes/(app)/replicache'
+	import { type ReplicacheType } from '../../../routes/(app)/replicache'
 	import { TodoStore } from '@/data/todo'
 	import { ListStore } from '@/data/list'
 	import type { Todo } from '@/core/todo'
 	import type { List } from '@/core/list'
 	import { goto } from '$app/navigation'
 	import { Circle, Star, Tray } from 'phosphor-svelte'
-	let open = false
+	import type { ListItem, SpecialListItem, TodoItem } from './types'
+	import { specials } from './data'
+	import { recents } from './store'
+	import commandScore from 'command-score'
+
+	export let open = false
 	let searchValue = ''
 
 	export let rep: ReplicacheType
+
+	$: if (!open) {
+		tick().then(() => {
+			searchValue = ''
+		})
+	}
 
 	const todos = TodoStore.list.watch(
 		() => rep,
@@ -22,94 +33,58 @@
 		() => []
 	)()
 
-	type TodoItem = {
-		type: 'todo'
-		data: Todo
-	}
-
-	type ListItem = {
-		type: 'list'
-		data: List
-	}
-
-	type SpecialListItem = {
-		type: 'special'
-		data: {
-			name: string
-			icon: ComponentType
-			iconClass: string
-			iconProps: Record<string, unknown>
-			id: string
-			href: string
-		}
-	}
-
-	type SearchItem = ListItem | TodoItem | SpecialListItem
-
-	const specials: Array<SpecialListItem> = [
-		{
-			type: 'special',
-			data: {
-				href: '/today',
-				id: '__special__:today',
-				name: 'Today',
-				icon: Star,
-				iconClass: 'text-yellow-400',
-				iconProps: {
-					weight: 'fill'
-				}
-			}
-		},
-		{
-			type: 'special',
-			data: {
-				href: '/',
-				id: '__special__:inbox',
-				name: 'Inbox',
-				icon: Tray,
-				iconClass: 'text-accent',
-				iconProps: {
-					weight: 'duotone'
-				}
-			}
-		}
-	]
-
 	function handleSearch(searchValue: string) {
-		const _todos: TodoItem[] = []
-		const _lists: Array<SpecialListItem | ListItem> = []
+		const _todos: Array<TodoItem & { score: number }> = []
+		const _lists: Array<(SpecialListItem & { score: number }) | (ListItem & { score: number })> = []
 
 		for (const todo of $todos) {
-			if (todo.text?.toLowerCase().includes(searchValue.toLowerCase())) {
+			if (!todo.text) continue
+			const score = commandScore(todo.text, searchValue)
+			if (score > 0) {
 				_todos.push({
 					type: 'todo',
-					data: todo
+					data: todo,
+					score: 0
 				})
 			}
 		}
 
 		for (const special of specials) {
-			if (special.data.name?.toLowerCase().includes(searchValue.toLowerCase())) {
-				_lists.push(special)
+			if (!special.data.name) continue
+			const score = commandScore(special.data.name, searchValue)
+			if (score > 0) {
+				_lists.push({
+					type: 'special',
+					data: special.data,
+					score
+				})
 			}
 		}
 
 		for (const list of $lists) {
-			if (list.name?.toLowerCase().includes(searchValue.toLowerCase())) {
+			if (!list.name) continue
+			const score = commandScore(list.name, searchValue)
+			if (score > 0) {
 				_lists.push({
 					type: 'list',
-					data: list
+					data: list,
+					score
 				})
 			}
 		}
 
 		return {
-			todos: _todos,
-			lists: _lists
+			todos: _todos.sort((a, b) => b.score - a.score),
+			lists: _lists.sort((a, b) => b.score - a.score)
 		}
 	}
 
-	$: results = handleSearch(searchValue)
+	let results: ReturnType<typeof handleSearch> = {
+		todos: [],
+		lists: []
+	}
+
+	$: if (searchValue) results = handleSearch(searchValue)
 
 	function check(): boolean {
 		const popover = document.querySelector('[data-melt-popover-content]')
@@ -136,6 +111,10 @@
 		function handleKeydown(e: KeyboardEvent) {
 			const valid = check()
 			if (!valid) return
+			if (e.key === 'f' && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault()
+				open = !open
+			}
 			if (e.metaKey || e.ctrlKey || e.altKey) return
 			// if alphanumeric character
 			if (e.key.length === 1 && e.key.match(/^[0-9a-zA-Z]+$/)) {
@@ -174,13 +153,13 @@
 		wrapperClass="text-foreground"
 		bind:value={searchValue}
 		autofocus
-		placeholder="Type a command or search..."
+		placeholder="Quick Find"
 	/>
 	<Command.List>
 		<Command.Empty>No results found.</Command.Empty>
-		{#if results.lists.length}
-			<Command.Group heading="Lists">
-				{#each results.lists as list}
+		{#if !searchValue || results.lists.length}
+			<Command.Group heading={searchValue ? 'Lists' : 'Recents'}>
+				{#each !searchValue ? $recents : results.lists as list}
 					<Command.Item
 						class="aria-selected:bg-accent/50 aria-selected:text-foreground"
 						onSelect={async () => {
@@ -208,12 +187,12 @@
 				{/each}
 			</Command.Group>
 		{/if}
-		{#if results.todos.length}
+		{#if searchValue && results.todos.length}
 			<Command.Group heading="Todos">
 				{#each results.todos as todo}
 					<Command.Item
 						onSelect={async () => {
-                            // TODO: show in context
+							// TODO: show in context
 							if (todo.data.listId) {
 								open = false
 								await goto(`/list/${todo.data.listId}?task=${todo.data.id}`)

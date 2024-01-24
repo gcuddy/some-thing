@@ -21,9 +21,11 @@
 	import { getReplicache } from './replicache'
 	import TodoDetail from './task/[id]/+page.svelte'
 	import type { Todo } from '@/core/todo'
-	import { sleep } from '@/util/sleep'
+	// import { sleep } from '@/util/sleep'
 	import Mover from '@/components/mover.svelte'
 	import { formatDate } from '@/util/date'
+	import { tick } from 'svelte'
+	import { sleep } from '@/util/sleep'
 
 	type $$Props = {
 		filterFn?: (t: Todo) => boolean
@@ -213,15 +215,34 @@
 	let moverOpen = false
 	let selectedIds: string[] = []
 	setKeyboardNavigatorContext(navigator)
-
-	export function scrollToTodo(id: string) {
-		$virtualizer.scrollToIndex($available.findIndex(t => t.id === id))
+	$: console.log({ $available })
+	export async function scrollToTodo(id: string) {
+		console.log('scrolling to todo')
+		console.log({ $virtualizer })
+		await tick()
+		const index = $available.findIndex(t => t.id === id)
+		console.log({ index, $available })
+		if (index === -1) return
+		$virtualizer?.scrollToIndex(index)
 		sleep(100).then(() => {
 			const el = ul.querySelector(`li[data-todo-id="${id}"]`)
 			if (el instanceof HTMLElement) {
 				navigator.focus(el)
 			}
 		})
+		return
+		return
+		// await sleep(100)
+		console.log('sleeeepppy')
+		setTimeout(() => {
+			const el = ul.querySelector(`li[data-todo-id="${id}"]`)
+			if (el instanceof HTMLElement) {
+				navigator.focus(el)
+			}
+		}, 100)
+		// sleep(100).then(() => { console.log('sleeeepppy')
+		// })
+		return
 	}
 
 	let footerBorderBoxSize: ResizeObserverEntry['borderBoxSize']
@@ -465,7 +486,9 @@
 													class="mr-1.5 h-4 w-4 {date.props.class ?? ''}"
 												/>
 											{:else}
-												<div class="mr-1.5 rounded bg-secondary/80 text-secondary-foreground/70 px-1.5 py-0.5 text-xs font-semibold">
+												<div
+													class="mr-1.5 rounded bg-secondary/80 px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground/70"
+												>
 													{date.shortText}
 												</div>
 											{/if}
