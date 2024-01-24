@@ -20,6 +20,11 @@
 	import type { Snapshot } from './$types'
 	import { getReplicache } from './replicache'
 	import TodoDetail from './task/[id]/+page.svelte'
+	import type { Todo } from '@/core/todo'
+
+    type $$Props = {
+        filterFn: (t: Todo) => boolean
+    }
 
 	// export let rep: Replicache
 	const rep = getReplicache()
@@ -31,6 +36,7 @@
 		// }
 	)()
 	$: console.log({ $t })
+	export let filterFn: (t: Todo) => boolean = t => true
 	const available = derived(t, $t =>
 		$t
 			.filter(t => !t.archivedAt)
@@ -39,6 +45,7 @@
 				if (filter === 'completed') return todo.completed
 				return true
 			})
+			.filter(filterFn)
 			.sort((a, b) => {
 				const aIndex = a.index ?? 0
 				const bIndex = b.index ?? 0
@@ -348,7 +355,7 @@
 												const idsToChange = Array.from(ids).filter(id => {
 													const todo = $available.find(t => t.id === id)
 													if (!todo) return false
-													if (todo.startDate?.toISOString() === date?.toISOString()) return false
+													if (new Date(todo.startDate)?.toISOString() === date?.toISOString()) return false
 													return true
 												})
 												console.log('onChange!', { idsToChange, date })
@@ -438,9 +445,7 @@
 											>
 										{/if}
 										{#if todo.startDate}
-											<span class="ml-1 text-xs text-gray-500"
-												>{todo.startDate}</span
-											>
+											<span class="ml-1 text-xs text-gray-500">{todo.startDate}</span>
 										{/if}
 										{#if !!todo.notes}
 											<NoteBlank weight="light" class="ml-1.5 h-3.5 w-3.5 text-gray-600" />

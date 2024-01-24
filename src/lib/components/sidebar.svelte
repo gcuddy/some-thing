@@ -39,7 +39,7 @@
 				<span></span>
 				{#if $syncing}
 					<!-- <ArrowsClockwise class="animate-spin" /> -->
-                   <Cloud weight="fill" class="animate-pulse text-muted-foreground" />
+					<Cloud weight="fill" class="animate-pulse text-muted-foreground" />
 				{/if}
 			</div>
 		</div>
@@ -54,10 +54,10 @@
 					>
 				</div>
 				<div class="flex flex-col">
-					<!-- <SidebarLink class="font-medium" href="/">
-						<Star weight="fill" class="mr-1.5 text-yellow-400 h-4 w-4" />
+					<SidebarLink class="font-medium" href="/today">
+						<Star weight="fill" class="mr-1.5 h-4 w-4 text-yellow-400" />
 						Today</SidebarLink
-					> -->
+					>
 				</div>
 				<div class="flex flex-col">
 					{#each $lists as list}
