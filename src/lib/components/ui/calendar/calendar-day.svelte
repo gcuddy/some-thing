@@ -18,11 +18,13 @@
 	{month}
 	class={cn(
 		buttonVariants({ variant: "ghost" }),
-		"h-8 w-8 p-0 font-normal",
+        'transition-none tabular-nums focus-visible:ring-0',
+        'text-xs',
+		"h-8 w-8 p-0 font-medium",
 		// Today
-		"[&[data-today]:not([data-selected])]:bg-accent [&[data-today]:not([data-selected])]:text-accent-foreground",
+		"[&[data-today]:not([data-selected])]:bg-yellow-400/10 focus-visible:[&[data-today]:not([data-selected])]:bg-accent [&[data-today]:not([data-selected])]:text-accent-foreground",
 		// Selected
-		"data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary data-[selected]:hover:text-primary-foreground data-[selected]:focus:bg-primary data-[selected]:focus:text-primary-foreground data-[selected]:opacity-100",
+		"data-[selected]:ring-2 data-[selected]:ring-focused ring-inset data-[selected]:focus:ring-white data-[selected]:text-accent-foreground data-[selected]:hover:bg-primary data-[selected]:hover:text-primary-foreground data-[selected]:focus:bg-accent data-[selected]:focus:text-accent-foreground data-[selected]:opacity-100",
 		// Disabled
 		"data-[disabled]:text-muted-foreground data-[disabled]:opacity-50",
 		// Unavailable
