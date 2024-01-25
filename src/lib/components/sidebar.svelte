@@ -27,6 +27,7 @@
 	import { flyAndScale } from '@/util/style'
 	import { sortIndexes } from '@/util/sort'
 	import SidebarListLink from './sidebar-list-link.svelte'
+	import SidebarDragRegion from './sidebar-drag-region.svelte'
 	let settingsOpen = false
 
 	export let rep: ReplicacheType
@@ -107,13 +108,14 @@
 					</SidebarLink>
 				</div>
 				<div class="flex flex-col gap-4">
-					<div class="flex flex-col">
+                   <SidebarDragRegion lists={$parentlessLists} />
+					<!-- <div class="flex flex-col">
 						{#each $parentlessLists as list}
 							<SidebarListLink {list}>
 								{list.name}
 							</SidebarListLink>
 						{/each}
-					</div>
+					</div> -->
 					{#each $areasAndChildren as area}
 						<div class="flex flex-col">
 							<SidebarListLink list={area}>

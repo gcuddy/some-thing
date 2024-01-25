@@ -15,7 +15,7 @@
 </script>
 
 <SidebarLink
-	class={cn(list.type === 'area' && 'font-semibold', className)}
+	class={cn('w-full', list.type === 'area' && 'font-semibold', className)}
 	{...$$restProps}
 	href={`/list/${list.id}`}
 >
@@ -27,5 +27,7 @@
 		<!-- TODO: progress -->
 		<Circle weight="regular" class="mr-1.5 h-4 w-4 text-muted-foreground/50 " />
 	{/if}
-	<slot /></SidebarLink
+	<slot>
+        {list.name}
+    </slot></SidebarLink
 >
