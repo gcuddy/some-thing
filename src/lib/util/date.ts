@@ -20,6 +20,17 @@ export function isWithinWeek(val: DateValue) {
 	return false
 }
 
+export const todayDate = {
+	text: 'Today',
+	icon: Star,
+	props: {
+		weight: 'fill',
+		class: 'text-yellow-400'
+	},
+	type: 'today',
+	shortText: 'Today'
+} as const satisfies ReturnType<typeof formatDate>
+
 export function formatDate(
 	date: Date | string,
 	locale = 'en-US'

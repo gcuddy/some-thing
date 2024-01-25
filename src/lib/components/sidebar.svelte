@@ -16,7 +16,7 @@
 	import autoAnimate from '@formkit/auto-animate'
 
 	import Button from './ui/button/button.svelte'
-	import Settings from '../../routes/(app)/(settings)/settings/+page.svelte'
+	import Settings from '../../routes/(app)/(settings)/settings/general/+page.svelte'
 	import { goto, preloadData, pushState } from '$app/navigation'
 	import * as Dialog from '$lib/components/ui/dialog'
 	import { page } from '$app/stores'
@@ -78,7 +78,7 @@
 </script>
 
 <div class="fixed bottom-0 left-0 top-0 w-60">
-	<nav class="relative flex h-full flex-col border-r bg-gray-100">
+	<nav class="relative flex h-full flex-col border-r bg-secondary">
 		<div class="flex h-10 flex-[initial] shrink-0 flex-col items-stretch gap-3 px-3.5 pb-2 pt-1">
 			<div class="flex justify-between">
 				<!-- <span>todo</span> -->
@@ -146,6 +146,7 @@
 							</div>
 						</div></DropdownMenu.Item
 					>
+                    <DropdownMenu.Separator />
 					<DropdownMenu.Item class="group" href="/list/new?type=list">
 						<div class="flex items-center">
 							<ListChecks
@@ -156,11 +157,12 @@
 								<span class="font-medium">New List</span>
 								<span
 									class="font-medium text-muted-foreground group-data-[highlighted]:text-white/50"
-									>A list is a collection of to-dos without an end goal.
+									>Collect loosely related to-dos together in a list.
 								</span>
 							</div>
 						</div></DropdownMenu.Item
 					>
+                    <DropdownMenu.Separator />
 					<DropdownMenu.Item class="group" href="/list/new?type=area">
 						<div class="flex items-center">
 							<Cube
@@ -196,7 +198,7 @@
 						}
 					}
 				}}
-				href="/settings"
+				href="/settings/general"
 				variant="ghostOutline"
 				size="icon"
 				class="text-muted-foreground"

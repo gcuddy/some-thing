@@ -7,21 +7,25 @@
 	import { setReplicache } from './replicache'
 	import Sidebar from '$lib/components/sidebar.svelte'
 	import Goto from '@/components/goto/goto.svelte'
+	import { ModeWatcher } from 'mode-watcher'
+
 	import { gotoOpen } from '@/stores/goto'
 	export let data: LayoutData
 
 	if (data.replicache) setReplicache(data.replicache)
 
-    $: if (data.replicache) {
-        data.replicache.subscribe(async tx => {
-            return await tx.scan().entries().toArray()
-        }, {
-            onData: (e) => {
-                console.log('onData', e)
-
-            }
-        })
-    }
+	$: if (data.replicache) {
+		data.replicache.subscribe(
+			async tx => {
+				return await tx.scan().entries().toArray()
+			},
+			{
+				onData: e => {
+					console.log('onData', e)
+				}
+			}
+		)
+	}
 
 	onMount(() => {
 		if (!data.replicache) return
@@ -45,6 +49,7 @@
 	})
 </script>
 
+<ModeWatcher />
 
 <div class="flex h-full w-full flex-row items-stretch overflow-hidden">
 	<aside class="w-60 max-sm:hidden">
@@ -60,11 +65,10 @@
 	</div>
 </div>
 {#if data.replicache}
-    <Goto bind:open={$gotoOpen} rep={data.replicache} />
+	<Goto bind:open={$gotoOpen} rep={data.replicache} />
 {/if}
 
-
-<style>
+<style lang="postcss">
 	:global(html) {
 		height: 100%;
 		position: fixed;

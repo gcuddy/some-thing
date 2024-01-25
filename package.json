@@ -63,6 +63,7 @@
     "command-score": "^0.1.2",
     "drizzle-orm": "^0.29.3",
     "drizzle-zod": "^0.5.1",
+    "mode-watcher": "^0.1.2",
     "nanoid": "^5.0.4",
     "partysocket": "0.0.21",
     "phosphor-svelte": "^1.4.2",

@@ -14,7 +14,9 @@ declare global {
 			}
 		}
 		// interface PageData {}
-		// interface PageState {}
+		interface PageState {
+			selected?: string
+		}
 		// interface Platform {
 		// 	env: {
 		// 		SK_DB: D1Database

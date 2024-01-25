@@ -23,14 +23,14 @@
 	import type { Todo } from '@/core/todo'
 	// import { sleep } from '@/util/sleep'
 	import Mover from '@/components/mover.svelte'
-	import { formatDate } from '@/util/date'
+	import { formatDate, todayDate } from '@/util/date'
 	import { tick } from 'svelte'
 	import { sleep } from '@/util/sleep'
 	import { sortIndexes } from '@/util/sort'
 
 	type $$Props = {
 		filterFn?: (t: Todo) => boolean
-		showDates?: boolean
+		showDates?: boolean | 'today'
 	}
 
 	// export let rep: Replicache
@@ -45,7 +45,7 @@
 	$: console.log({ $t })
 	// inbox
 	export let filterFn: (t: Todo) => boolean = t => !t.listId && !t.startDate
-	export let showDates = true
+	export let showDates: $$Props['showDates'] = true
 	const available = derived(t, $t =>
 		$t
 			.filter(t => !t.archivedAt)
@@ -423,6 +423,7 @@
 												const idsToChange = Array.from(ids).filter(id => {
 													const todo = $available.find(t => t.id === id)
 													if (!todo) return false
+													if (!todo.startDate) return true
 													if (new Date(todo.startDate)?.toISOString() === date?.toISOString())
 														return false
 													return true
@@ -473,13 +474,13 @@
 											await pushHrefToModal(e.currentTarget.href)
 										}}
 									>
-										{#if showDates && todo.startDate}
+										{#if !!showDates && todo.startDate}
 											{@const date = formatDate(todo.startDate)}
-											{#if date.type === 'today'}
+											{#if date.type === 'today' || showDates === 'today'}
 												<svelte:component
-													this={date.icon}
-													{...date.props}
-													class="mr-1.5 h-4 w-4 {date.props.class ?? ''}"
+													this={todayDate.icon}
+													{...todayDate.props}
+													class="mr-1.5 h-4 w-4 {todayDate.props.class ?? ''}"
 												/>
 											{:else}
 												<div
@@ -591,6 +592,7 @@
 			}}
 			data={{
 				replicache: rep,
+				// @ts-expect-error - This is a string, but Svelte doesn't allow TS assertions
 				id: $page.state.selected
 			}}
 		/>

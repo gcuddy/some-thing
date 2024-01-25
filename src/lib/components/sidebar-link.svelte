@@ -15,7 +15,7 @@
 	{href}
 	class={cn(
 		'px-2 py-1 text-sm rounded-md inline-flex items-center cursor-default',
-		active && 'bg-gray-200 text-secondary-foreground',
+		active && 'bg-gray-200 dark:bg-gray-700 text-secondary-foreground',
 		className
 	)}
 >

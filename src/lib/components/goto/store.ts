@@ -24,9 +24,21 @@ export function createRecentsStore() {
 		})
 	}
 
+	function remove(item: ListItem | SpecialNames) {
+		const _item = typeof item === 'string' ? specials.find(s => s.data.name === item)! : item
+		update(items => {
+			items.splice(
+				items.findIndex(i => i.data.id === _item.data.id),
+				1
+			)
+			return items
+		})
+	}
+
 	return {
 		add,
-		subscribe
+		subscribe,
+		remove
 	}
 }
 

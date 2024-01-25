@@ -54,7 +54,7 @@
 		<textarea
 			value={list?.name ?? ''}
 			bind:this={textInput}
-			class="flex-1 py-1 text-2xl font-semibold focus-visible:outline-none"
+			class="flex-1 bg-inherit py-1 text-2xl font-semibold focus-visible:outline-none"
 			on:blur={async e => {
 				console.log({ _new, e, list })
 				if (_new && e.currentTarget.value.trim()) {
@@ -170,9 +170,3 @@
 		/>
 	</div>
 </div>
-
-<style>
-	input[type='checkbox'] {
-		@apply h-5 w-5 rounded-full border-2 border-blue-700;
-	}
-</style>

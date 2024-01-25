@@ -23,6 +23,7 @@
 
 <div class="mx-auto w-[calc(100%)] grow">
 	<!-- <h1>todos</h1> -->
+    <!-- showDates="today" -->
 	<Todo
 		bind:this={todo}
 		filterFn={filterFn}
