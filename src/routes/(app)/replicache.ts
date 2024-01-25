@@ -70,7 +70,7 @@ const mutators = new Client<ServerType>()
 		const id = input.id ?? createId()
 		await ListStore.put(tx, [id], {
 			id,
-			name: input.name
+			...input
 		})
 	})
 	.mutation('list_update', async (tx, { id: ids, data }) => {

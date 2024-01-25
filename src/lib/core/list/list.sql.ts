@@ -9,6 +9,10 @@ export const lists = sqliteTable('lists', {
 	name: text('name'),
 	notes: text('notes'),
 	index: integer('index').default(0),
+	areaId: text('area_id'),
+	type: text('type', {
+		enum: ['list', 'project', 'area']
+	}).default('project'),
 	shared: text('shared', {
 		enum: ['private', 'public', 'shared']
 	}).default('private')

@@ -64,7 +64,7 @@
 			return false
 		}}
 	>
-		<ListDetail slot="header" new={false} list={$list} replicache={data.replicache} />
+		<ListDetail slot="header" list={$list} replicache={data.replicache} />
 
 		<Footer
 			slot="footer"

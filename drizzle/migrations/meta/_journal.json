@@ -36,6 +36,20 @@
       "when": 1706035015082,
       "tag": "0004_giant_ozymandias",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1706148293049,
+      "tag": "0005_cynical_gargoyle",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1706153139630,
+      "tag": "0006_mature_the_fallen",
+      "breakpoints": true
     }
   ]
 }

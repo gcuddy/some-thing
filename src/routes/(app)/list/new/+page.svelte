@@ -1,8 +1,4 @@
 <script lang="ts">
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
-
-	import autosize from '$lib/actions/autosize'
-	import { DotsThree } from 'phosphor-svelte'
 	import ListDetail from '@/components/list-detail.svelte'
 
 	export let data
@@ -14,5 +10,5 @@
 </script>
 
 {#if data.replicache}
-	<ListDetail list={null} replicache={data.replicache} new />
+	<ListDetail replicache={data.replicache} new={data.type} />
 {/if}

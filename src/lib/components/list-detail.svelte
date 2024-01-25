@@ -2,45 +2,71 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
 
 	import autosize from '$lib/actions/autosize'
-	import { CheckCircle, DotsThree, Trash } from 'phosphor-svelte'
+	import { CheckCircle, Circle, Cube, DotsThree, ListChecks, Trash } from 'phosphor-svelte'
 	import type { ReplicacheType } from '../../routes/(app)/replicache'
 	import type { List } from '@/core/list'
 	import { createId } from '@/util/nanoid'
 	import { page } from '$app/stores'
-	import { goto } from '$app/navigation'
+	import { afterNavigate, goto } from '$app/navigation'
+	import { capitalize } from '@/util/capitalize'
+	import { onMount } from 'svelte'
+	import { sleep } from '@/util/sleep'
 
 	export let replicache: ReplicacheType
-	export let list: Pick<List, 'id' | 'name' | 'notes'> | null = null
+	export let list: Pick<List, 'id' | 'name' | 'notes' | 'type'> | null = null
+	$: console.log({ list, _new })
 
 	let notesTextarea: HTMLTextAreaElement
 	let textInput: HTMLTextAreaElement
 
-	let _new = !list
+	let _new: List['type'] | undefined = undefined
+
+	$: type = _new ?? list?.type ?? 'project'
 	export { _new as new }
+
+	afterNavigate(() => {
+		console.log('after navigate')
+		if (_new) {
+			console.log('autofocus')
+			sleep(25).then(() => {
+				textInput?.focus()
+			})
+		}
+	})
 </script>
 
 <div class="flex h-full w-full shrink grow flex-col px-16 pt-10">
 	<div class="flex items-center gap-2">
-		<input type="checkbox" class="text-lg" />
+		{#if type === 'project'}
+			<!-- <input type="checkbox" class="text-lg" /> -->
+			<Circle weight="bold" class="h-6 w-6 text-blue-500" />
+		{:else if type === 'area'}
+			<Cube weight="bold" class="h-6 w-6 text-emerald-500" />
+		{:else if type === 'list'}
+			<ListChecks weight="bold" class="h-6 w-6 text-gray-400" />
+		{/if}
 		<textarea
 			value={list?.name ?? ''}
 			bind:this={textInput}
 			class="flex-1 py-1 text-2xl font-semibold focus-visible:outline-none"
-			autofocus={_new}
 			on:blur={async e => {
 				console.log({ _new, e, list })
 				if (_new && e.currentTarget.value.trim()) {
-					_new = false
-					const list = {
-						id: createId(),
+					const id = createId()
+					const _list = {
+						id,
 						name: e.currentTarget.value.trim(),
-						notes: ''
+						notes: '',
+						type: _new
 					}
-					await replicache.mutate.list_create(list)
+					console.log('creating list', { _list })
+					await replicache.mutate.list_create(_list)
+					list = _list
+					_new = undefined
 					console.log({ $page, pathname: $page.url.pathname })
 					if ($page.url.pathname === '/list/new') {
 						console.log('navgatig')
-						await goto(`/list/${list.id}`)
+						await goto(`/list/${id}`)
 					}
 				} else if (list) {
 					if (list.name !== e.currentTarget.value.trim()) {
@@ -66,7 +92,7 @@
 			}}
 			use:autosize
 			rows={1}
-			placeholder="New List"
+			placeholder="New {capitalize(type)}"
 		/>
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger

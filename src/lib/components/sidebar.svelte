@@ -3,7 +3,10 @@
 	import {
 		ArrowsClockwise,
 		Calendar,
+		CircleHalf,
 		Cloud,
+		Cube,
+		ListChecks,
 		Plus,
 		SlidersHorizontal,
 		Star,
@@ -22,6 +25,7 @@
 	import { filterFn } from '../../routes/(app)/today/filter'
 	import * as DropdownMenu from './ui/dropdown-menu'
 	import { flyAndScale } from '@/util/style'
+	import { sortIndexes } from '@/util/sort'
 	let settingsOpen = false
 
 	export let rep: ReplicacheType
@@ -30,6 +34,22 @@
 		() => rep,
 		() => []
 	)()
+
+	// sort by index, put lists without parent (area) first, then list areas with their children
+
+	const parentlessLists = derived(lists, lists =>
+		lists.filter(list => !list.areaId).sort(sortIndexes)
+	)
+	const areasAndChildren = derived(lists, lists => {
+		const areas = lists.filter(list => list.areaId).sort(sortIndexes)
+		const children = lists.filter(list => list.areaId).sort(sortIndexes)
+		return areas.map(area => {
+			return {
+				...area,
+				children: children.filter(child => child.areaId === area.id)
+			}
+		})
+	})
 
 	const todos = TodoStore.list.watch(
 		() => rep,
@@ -103,14 +123,57 @@
 					</Button></DropdownMenu.Trigger
 				>
 				<DropdownMenu.Content
+					class="w-80"
 					transition={flyAndScale}
 					transitionConfig={{
 						y: 8
 					}}
 				>
-					<DropdownMenu.Item>Project</DropdownMenu.Item>
-					<DropdownMenu.Item>Area</DropdownMenu.Item>
-					<DropdownMenu.Item>List</DropdownMenu.Item>
+					<DropdownMenu.Item href="/list/new?type=project" class="group">
+						<div class="flex items-center">
+							<CircleHalf
+								weight="fill"
+								class="relative top-0.5 mr-1.5 h-4 w-4 shrink-0 self-start text-accent group-data-[highlighted]:text-white/75"
+							/>
+							<div class="flex flex-col">
+								<span class="font-medium">New Project</span>
+								<span
+									class="font-medium text-muted-foreground group-data-[highlighted]:text-white/50"
+									>Define a goal, then work toward it one to-do at a time.</span
+								>
+							</div>
+						</div></DropdownMenu.Item
+					>
+					<DropdownMenu.Item class="group" href="/list/new?type=list">
+						<div class="flex items-center">
+							<ListChecks
+								weight="bold"
+								class="relative top-0.5 mr-1.5 h-4 w-4 shrink-0 self-start text-gray-400 group-data-[highlighted]:text-white/75"
+							/>
+							<div class="flex flex-col">
+								<span class="font-medium">New List</span>
+								<span
+									class="font-medium text-muted-foreground group-data-[highlighted]:text-white/50"
+									>A list is a collection of to-dos without an end goal.
+								</span>
+							</div>
+						</div></DropdownMenu.Item
+					>
+					<DropdownMenu.Item class="group" href="/list/new?type=area">
+						<div class="flex items-center">
+							<Cube
+								weight="bold"
+								class="relative top-0.5 mr-1.5 h-4 w-4 shrink-0 self-start text-emerald-400 group-data-[highlighted]:text-white/75"
+							/>
+							<div class="flex flex-col">
+								<span class="font-medium">New Area</span>
+								<span
+									class="font-medium text-muted-foreground group-data-[highlighted]:text-white/50"
+									>Group your projects and to-dos by area of responsibility, such as Family or Work.
+								</span>
+							</div>
+						</div></DropdownMenu.Item
+					>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 			<Button

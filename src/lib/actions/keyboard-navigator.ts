@@ -80,6 +80,8 @@ export const createKeyboardNavigator = (options: Options) => {
 			return
 		}
 		if (document.activeElement?.tagName === 'TEXTAREA') return
+		const escapee = document.querySelector('[data-escapee]')
+		if (document.activeElement === escapee || escapee?.contains(document.activeElement)) return
 		if (
 			document.activeElement?.tagName === 'INPUT' &&
 			(document.activeElement as HTMLInputElement).type === 'text'

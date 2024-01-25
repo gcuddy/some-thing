@@ -26,6 +26,7 @@
 	import { formatDate } from '@/util/date'
 	import { tick } from 'svelte'
 	import { sleep } from '@/util/sleep'
+	import { sortIndexes } from '@/util/sort'
 
 	type $$Props = {
 		filterFn?: (t: Todo) => boolean
@@ -54,12 +55,7 @@
 				return true
 			})
 			.filter(filterFn)
-			.sort((a, b) => {
-				const aIndex = a.index ?? 0
-				const bIndex = b.index ?? 0
-				if (aIndex === bIndex) return a.timeCreated > b.timeCreated ? 1 : -1
-				return aIndex > bIndex ? 1 : -1
-			})
+			.sort(sortIndexes)
 	)
 	const ready = t.ready
 
