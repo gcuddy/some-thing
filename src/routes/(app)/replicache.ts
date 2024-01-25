@@ -114,8 +114,8 @@ export function createReplicache() {
 		pullURL: '/api/party?pull',
 		mutators,
 		// higher speed for testing
-		pullInterval: 1000 * 5
-		// pushDelay: 1000 * 2
+		pullInterval: 1000 * 60,
+		pushDelay: 1000 * 2
 	})
 
 	replicache.onSync = s => syncing.set(s)
