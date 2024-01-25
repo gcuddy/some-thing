@@ -26,6 +26,7 @@
 	import * as DropdownMenu from './ui/dropdown-menu'
 	import { flyAndScale } from '@/util/style'
 	import { sortIndexes } from '@/util/sort'
+	import SidebarListLink from './sidebar-list-link.svelte'
 	let settingsOpen = false
 
 	export let rep: ReplicacheType
@@ -38,10 +39,10 @@
 	// sort by index, put lists without parent (area) first, then list areas with their children
 
 	const parentlessLists = derived(lists, lists =>
-		lists.filter(list => !list.areaId).sort(sortIndexes)
+		lists.filter(list => !list.areaId && list.type !== 'area').sort(sortIndexes)
 	)
 	const areasAndChildren = derived(lists, lists => {
-		const areas = lists.filter(list => list.areaId).sort(sortIndexes)
+		const areas = lists.filter(list => list.type === "area").sort(sortIndexes)
 		const children = lists.filter(list => list.areaId).sort(sortIndexes)
 		return areas.map(area => {
 			return {
@@ -105,11 +106,25 @@
 						Upcoming
 					</SidebarLink>
 				</div>
-				<div class="flex flex-col">
-					{#each $lists as list}
-						<SidebarLink href="/list/{list.id}">
-							{list.name}
-						</SidebarLink>
+				<div class="flex flex-col gap-4">
+					<div class="flex flex-col">
+						{#each $parentlessLists as list}
+							<SidebarListLink {list}>
+								{list.name}
+							</SidebarListLink>
+						{/each}
+					</div>
+					{#each $areasAndChildren as area}
+						<div class="flex flex-col">
+							<SidebarListLink list={area}>
+								{area.name}
+							</SidebarListLink>
+							{#each area.children as child}
+								<SidebarListLink list={child}>
+									{child.name}
+								</SidebarListLink>
+							{/each}
+						</div>
 					{/each}
 				</div>
 			</div>
