@@ -58,7 +58,11 @@ export const createMultiSelectHandler = (options: Options) => {
 
 	function reset() {
 		const all = targets()
-		all.forEach(item => item.removeAttribute('data-selected'))
+		all.forEach(item => {
+			if (item.dataset.focus !== 'true') {
+				item.removeAttribute('data-selected')
+			}
+		})
 		all.forEach(item => {
 			if (item.dataset.focus !== 'true') {
 				item.removeAttribute('data-pivot')

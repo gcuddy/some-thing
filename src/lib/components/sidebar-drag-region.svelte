@@ -117,7 +117,7 @@
 	function outsideClick(node: HTMLElement) {
 		const handleClick = (event: MouseEvent) => {
 			if (node && !node.contains(event.target as Node)) {
-                multi?.reset()
+				multi?.reset()
 			}
 		}
 		document.addEventListener('click', handleClick)
@@ -131,7 +131,7 @@
 
 <div
 	bind:this={wrapper}
-    use:outsideClick
+	use:outsideClick
 	class={cn('flex min-h-7 flex-col', className)}
 	use:dndzone={{
 		items: lists,
@@ -142,7 +142,7 @@
 	on:consider={handleSort}
 	on:finalize={handleFinalize}
 >
-	{#each lists as list (list.id)}
+	{#each lists as list, index (list.id)}
 		<div class="flex w-full flex-col" animate:flip={{ duration: flipDurationMs }}>
 			<SidebarListLink
 				on:click={e => {
@@ -152,6 +152,7 @@
 					if (multi) multi.handleClick(e)
 				}}
 				{list}
+                lists={lists}
 				data-sidebar-list-item
 			/>
 			{#if list.children}

@@ -1,3 +1,13 @@
+<script lang="ts" context="module">
+	export const selected = writable<string[]>([])
+
+	export function getSelected() {
+		const s = getContext('sidebar_selected')
+		if (!s) throw new Error('sidebar_selected not found')
+		return s as typeof selected
+	}
+</script>
+
 <script lang="ts">
 	import { syncing } from '$lib/stores/sync'
 	import {
@@ -23,7 +33,7 @@
 	import { getReplicache, type ReplicacheType } from '../../routes/(app)/replicache'
 	import { ListStore } from '@/data/list'
 	import { TodoStore } from '@/data/todo'
-	import { derived } from 'svelte/store'
+	import { derived, writable, type Writable } from 'svelte/store'
 	import SidebarLink from './sidebar-link.svelte'
 	import { filterFn } from '../../routes/(app)/today/filter'
 	import * as DropdownMenu from './ui/dropdown-menu'
@@ -31,9 +41,11 @@
 	import { sortIndexes } from '@/util/sort'
 	import SidebarListLink from './sidebar-list-link.svelte'
 	import SidebarDragRegion from './sidebar-drag-region.svelte'
+	import { getContext, setContext } from 'svelte'
 	let settingsOpen = false
 
 	export let rep: ReplicacheType
+	setContext('sidebar_selected', selected)
 
 	const lists = ListStore.list.watch(
 		() => rep,
@@ -75,6 +87,29 @@
 				return filterFn(todo)
 			}).length
 	)
+
+	function selectedMutationObserver(node: HTMLElement) {
+		const observer = new MutationObserver(cl => {
+			// actually just use node selector
+			const nodes = Array.from(
+				node.querySelectorAll<HTMLElement>('[data-sidebar-list-item][data-selected=true]')
+			)
+				.map(c => c.dataset.id)
+				.filter(Boolean)
+			selected.set(nodes as string[])
+		})
+		observer.observe(node, {
+			attributes: true,
+			childList: true,
+			subtree: true,
+			attributeFilter: ['data-selected']
+		})
+		return {
+			destroy() {
+				observer.disconnect()
+			}
+		}
+	}
 </script>
 
 <div class="fixed bottom-0 left-0 top-0 w-60">
@@ -110,9 +145,14 @@
 						Upcoming
 					</SidebarLink>
 				</div>
-				<div use:autoAnimate class="flex flex-col gap-4">
+				<div use:autoAnimate use:selectedMutationObserver class="flex flex-col gap-4">
 					<SidebarDragRegion multiSelectable lists={$parentlessLists} />
-					<SidebarDragRegion multiSelectable={false} type="area" class="gap-2" lists={$areasAndChildren} />
+					<SidebarDragRegion
+						multiSelectable={false}
+						type="area"
+						class="gap-2"
+						lists={$areasAndChildren}
+					/>
 				</div>
 			</div>
 		</div>
@@ -146,7 +186,7 @@
 							</div>
 						</div></DropdownMenu.Item
 					>
-                    <DropdownMenu.Separator />
+					<DropdownMenu.Separator />
 					<DropdownMenu.Item class="group" href="/list/new?type=list">
 						<div class="flex items-center">
 							<ListChecks
@@ -162,7 +202,7 @@
 							</div>
 						</div></DropdownMenu.Item
 					>
-                    <DropdownMenu.Separator />
+					<DropdownMenu.Separator />
 					<DropdownMenu.Item class="group" href="/list/new?type=area">
 						<div class="flex items-center">
 							<Cube
