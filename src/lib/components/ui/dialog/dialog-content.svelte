@@ -11,7 +11,7 @@
 	}
 
 	let className: $$Props['class'] = undefined
-	export let transition: $$Props['transition'] = flyAndScale
+	export let transition: NonNullable<$$Props['transition']> = flyAndScale
 	export let transitionConfig: $$Props['transitionConfig'] = {
 		duration: 200
 	}
@@ -30,50 +30,26 @@
 </script>
 
 <Dialog.Portal>
-	<Dialog.Overlay class={cn('fixed inset-0 z-50 bg-background/50', overlayClass)} />
+	<Dialog.Overlay class={cn('fixed inset-0 z-50 bg-black/10', overlayClass)} />
 	{#if $open}
-		<!-- TODO: clean up this repeated code -->
-		{#if transition}
-			<div
-				transition:transition={transitionConfig}
-				{...$$restProps}
+		<!-- TODO: clean up type problem -->
+		<div
+			transition:transition={transitionConfig}
+			{...$$restProps}
+			class={cn('fixed left-0 top-10 z-50 flex w-screen items-start justify-center px-3 py-[13vh]')}
+		>
+			<DialogPrimitive.Content
+				{transition}
+				{transitionConfig}
 				class={cn(
-					'fixed left-0 top-10 z-50 flex w-screen items-start justify-center px-3 py-[13vh]'
-				)}
-			>
-				<DialogPrimitive.Content
-					{transition}
-					{transitionConfig}
-					class={cn(
-						'relative flex max-w-2xl flex-1 flex-col justify-center gap-4 border bg-background p-6 shadow-lg sm:rounded-lg',
+					'relative flex max-w-2xl flex-1 flex-col justify-center gap-4 border bg-background p-6 shadow-lg sm:rounded-lg',
 
-						className
-					)}
-					{...$$restProps}
-				>
-					<slot />
-				</DialogPrimitive.Content>
-			</div>
-		{:else}
-			<div
+					className
+				)}
 				{...$$restProps}
-				class={cn(
-					'fixed left-0 top-10 z-50 flex w-screen items-start justify-center px-3 py-[13vh]'
-				)}
 			>
-				<DialogPrimitive.Content
-					{transition}
-					{transitionConfig}
-					class={cn(
-						'relative flex max-w-2xl flex-1 flex-col justify-center gap-4 border bg-background p-6 shadow-lg sm:rounded-lg',
-
-						className
-					)}
-					{...$$restProps}
-				>
-					<slot />
-				</DialogPrimitive.Content>
-			</div>
-		{/if}
+				<slot />
+			</DialogPrimitive.Content>
+		</div>
 	{/if}
 </Dialog.Portal>

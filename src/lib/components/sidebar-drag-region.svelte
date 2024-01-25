@@ -6,6 +6,7 @@
 	import { cn } from '@/util/style'
 	import { ArrowElbowLeft } from 'phosphor-svelte'
 	import { getReplicache } from '../../routes/(app)/replicache'
+	import { createMultiSelectHandler } from '@/actions/multi-select'
 
 	const rep = getReplicache()
 
@@ -18,6 +19,18 @@
 	export { className as class }
 	export let type: 'list' | 'area' = 'list'
 	export let areaId: string | null = null
+
+	export let multiSelectable = true
+	let wrapper: HTMLElement
+
+	let multi: ReturnType<typeof createMultiSelectHandler>
+
+	$: if (multiSelectable && wrapper) {
+		multi = createMultiSelectHandler({
+			target: '[data-sidebar-list-item]',
+			scope: wrapper
+		})
+	}
 
 	const idToLastIndex = new Map<string, number>()
 	for (let i = 0; i < lists.length; i++) {
@@ -100,9 +113,25 @@
 	}
 
 	const flipDurationMs = 200
+
+	function outsideClick(node: HTMLElement) {
+		const handleClick = (event: MouseEvent) => {
+			if (node && !node.contains(event.target as Node)) {
+                multi?.reset()
+			}
+		}
+		document.addEventListener('click', handleClick)
+		return {
+			destroy() {
+				document.removeEventListener('click', handleClick)
+			}
+		}
+	}
 </script>
 
 <div
+	bind:this={wrapper}
+    use:outsideClick
 	class={cn('flex min-h-7 flex-col', className)}
 	use:dndzone={{
 		items: lists,
@@ -114,8 +143,17 @@
 	on:finalize={handleFinalize}
 >
 	{#each lists as list (list.id)}
-		<div class="flex w-full flex-col" data-hello animate:flip={{ duration: flipDurationMs }}>
-			<SidebarListLink {list} />
+		<div class="flex w-full flex-col" animate:flip={{ duration: flipDurationMs }}>
+			<SidebarListLink
+				on:click={e => {
+					if (e.shiftKey) {
+						e.preventDefault()
+					}
+					if (multi) multi.handleClick(e)
+				}}
+				{list}
+				data-sidebar-list-item
+			/>
 			{#if list.children}
 				<svelte:self lists={list.children} type="list" areaId={list.id} />
 			{/if}

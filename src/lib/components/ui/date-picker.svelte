@@ -10,7 +10,9 @@
 		getLocalTimeZone,
 		CalendarDate,
 		today,
-		getDayOfWeek
+		getDayOfWeek,
+		parseDate,
+		parseZonedDateTime
 	} from '@internationalized/date'
 	import { Button } from './button'
 	import { cn } from '@/util/style'
@@ -52,9 +54,17 @@
 
 	function handleCalendarInitialFocus(calendar: HTMLElement) {
 		const selectedDay = calendar.querySelector<HTMLElement>('[data-selected]')
-		if (selectedDay) return selectedDay
-		const today = calendar.querySelector<HTMLElement>('[data-today]')
-		if (today) return today
+		// check if selectedDay isless than toeday. If it is, skip (and return today)
+		if (selectedDay) {
+			const date = selectedDay.dataset.value as string
+			const selectedDate = parseZonedDateTime(date)
+			const todayDate = today(getLocalTimeZone())
+			if (!(selectedDate.compare(todayDate) < 0)) {
+				return selectedDay
+			}
+		}
+		const t = calendar.querySelector<HTMLElement>('[data-today]')
+		if (t) return t
 		const firstDay = calendar.querySelector<HTMLElement>('[data-calendar-date]')
 		if (firstDay) return firstDay
 	}
@@ -491,7 +501,7 @@
 	</Popover.Trigger>
 	<!-- {value ? df.format(value.toDate(getLocalTimeZone())) : "Select a date"} -->
 
-	<Popover.Content data-date-picker class="flex w-64 flex-col gap-2 rounded-lg p-2">
+	<Popover.Content data-date-picker class="z-50 flex w-64 flex-col gap-2 rounded-lg p-2">
 		{#if commandShowing}
 			<Command.Root shouldFilter={false}>
 				<Command.Input

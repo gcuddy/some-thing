@@ -111,8 +111,8 @@
 					</SidebarLink>
 				</div>
 				<div use:autoAnimate class="flex flex-col gap-4">
-					<SidebarDragRegion lists={$parentlessLists} />
-					<SidebarDragRegion type="area" class="gap-2" lists={$areasAndChildren} />
+					<SidebarDragRegion multiSelectable lists={$parentlessLists} />
+					<SidebarDragRegion multiSelectable={false} type="area" class="gap-2" lists={$areasAndChildren} />
 				</div>
 			</div>
 		</div>

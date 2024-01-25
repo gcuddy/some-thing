@@ -18,7 +18,7 @@
 	{month}
 	class={cn(
 		buttonVariants({ variant: "ghost" }),
-        'transition-none tabular-nums focus-visible:ring-0',
+        'transition-none tabular-nums focus-visible',
         'text-xs',
 		"h-8 w-8 p-0 font-medium",
 		// Today

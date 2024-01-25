@@ -15,6 +15,7 @@
 </script>
 
 <SidebarLink
+    on:click
 	class={cn('w-full', list.type === 'area' && 'font-semibold', className)}
 	{...$$restProps}
 	href={`/list/${list.id}`}

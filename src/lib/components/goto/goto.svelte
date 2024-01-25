@@ -7,7 +7,7 @@
 	import type { Todo } from '@/core/todo'
 	import type { List } from '@/core/list'
 	import { goto } from '$app/navigation'
-	import { Circle, Star, Tray } from 'phosphor-svelte'
+	import { Circle, Cube, ListChecks, Star, Tray } from 'phosphor-svelte'
 	import type { ListItem, SpecialListItem, TodoItem } from './types'
 	import { specials } from './data'
 	import { recents } from './store'
@@ -40,11 +40,12 @@
 		for (const todo of $todos) {
 			if (!todo.text) continue
 			const score = commandScore(todo.text, searchValue)
+			console.log({ score, todo, searchValue })
 			if (score > 0) {
 				_todos.push({
 					type: 'todo',
 					data: todo,
-					score: 0
+					score
 				})
 			}
 		}
@@ -72,6 +73,8 @@
 				})
 			}
 		}
+
+		console.log(_todos, _lists)
 
 		return {
 			todos: _todos.sort((a, b) => b.score - a.score),
@@ -178,9 +181,13 @@
 								class="mr-1.5 h-4 w-4 {list.data.iconClass}"
 								{...list.data.iconProps}
 							/>
-						{:else}
+						{:else if list.data.type === "project"}
 							<!-- TODO: completed anduncompleted list -->
 							<Circle class="mr-1.5 h-4 w-4 text-accent" />
+                        {:else if list.data.type === "area"}
+                            <Cube class="mr-1.5 h-4 w-4 text-emerald-500" />
+                        {:else if list.data.type === "list"}
+                            <ListChecks class="mr-1.5 h-4 w-4 text-rose-400" />
 						{/if}
 						{list.data.name}</Command.Item
 					>

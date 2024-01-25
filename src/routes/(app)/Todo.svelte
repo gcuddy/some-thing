@@ -110,7 +110,9 @@
 		initialFocusId = null
 	}
 
-	let headerContentRect: DOMRectReadOnly
+	let headerBorderBoxSize: ResizeObserverEntry['borderBoxSize']
+	let footerBorderBoxSize: ResizeObserverEntry['borderBoxSize']
+	const listPaddingTop = 48
 
 	let wrapper: HTMLDivElement
 
@@ -131,7 +133,8 @@
 		return (
 			innerHeight -
 			40 -
-			(headerContentRect?.height ?? 0) -
+			listPaddingTop -
+			(headerBorderBoxSize?.[0]?.blockSize ?? 0) -
 			(footerBorderBoxSize?.[0]?.blockSize ?? 0) +
 			'px'
 		)
@@ -139,7 +142,8 @@
 	$: virtualListHeight =
 		innerHeight -
 		40 -
-		(headerContentRect?.height ?? 0) -
+		listPaddingTop -
+		(headerBorderBoxSize?.[0]?.blockSize ?? 0) -
 		(footerBorderBoxSize?.[0]?.blockSize ?? 0) +
 		'px'
 
@@ -240,8 +244,6 @@
 		// })
 		return
 	}
-
-	let footerBorderBoxSize: ResizeObserverEntry['borderBoxSize']
 </script>
 
 <svelte:window
@@ -307,70 +309,80 @@
 		moverOpen = false
 	}}
 />
-<div class="w-full mx-auto grow">
+<div class="mx-auto w-full grow">
 	{#if $ready}
-		<div bind:this={wrapper} class="mx-auto flex h-full max-w-screen-lg grow flex-col gap-12 px-10">
-			<div class="header pl-4" bind:contentRect={headerContentRect}>
-				<slot name="header">
-					<button
-						disabled={!$available.length}
-						on:click={async () => {
-							await rep.mutate.todo_update({
-								id: $available.map(t => t.id),
-								data: {
-									completed: !allFiltered ? new Date() : null
+		<div bind:this={wrapper} class="flex h-full grow flex-col">
+			<div
+				class="header mx-auto w-full max-w-screen-lg pl-14 pr-10"
+				bind:borderBoxSize={headerBorderBoxSize}
+			>
+				<div class="w-full">
+					<slot name="header">
+						<button
+							disabled={!$available.length}
+							on:click={async () => {
+								await rep.mutate.todo_update({
+									id: $available.map(t => t.id),
+									data: {
+										completed: !allFiltered ? new Date() : null
+									}
+								})
+							}}
+						>
+							{#if allFiltered}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									fill="#000000"
+									viewBox="0 0 256 256"
+									><path
+										d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"
+									></path></svg
+								>
+							{:else}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									fill="#000000"
+									viewBox="0 0 256 256"
+									><path
+										d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
+									></path></svg
+								>
+							{/if}
+							<VisuallyHidden
+								>Mark all as {allFiltered ? 'un-complete' : 'completed'}</VisuallyHidden
+							>
+						</button>
+						<form
+							on:submit|preventDefault={async () => {
+								const text = newTodo.trim()
+								if (text === '') {
+									return
 								}
-							})
-						}}
-					>
-						{#if allFiltered}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="16"
-								height="16"
-								fill="#000000"
-								viewBox="0 0 256 256"
-								><path
-									d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"
-								></path></svg
-							>
-						{:else}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="16"
-								height="16"
-								fill="#000000"
-								viewBox="0 0 256 256"
-								><path
-									d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
-								></path></svg
-							>
-						{/if}
-						<VisuallyHidden>Mark all as {allFiltered ? 'un-complete' : 'completed'}</VisuallyHidden>
-					</button>
-					<form
-						on:submit|preventDefault={async () => {
-							const text = newTodo.trim()
-							if (text === '') {
-								return
-							}
-							console.log({ $available })
-							const minIndex = $available[0]?.index ?? 0
-							console.log({ minIndex })
-							const index = minIndex - 100
-							console.log({ index })
-							await rep.mutate.todo_create({ text, index })
-							newTodo = ''
-						}}
-					>
-						<input placeholder="What needs to be done?" bind:value={newTodo} type="text" />
-						<!-- <button>Add</button> -->
-					</form>
-				</slot>
+								console.log({ $available })
+								const minIndex = $available[0]?.index ?? 0
+								console.log({ minIndex })
+								const index = minIndex - 100
+								console.log({ index })
+								await rep.mutate.todo_create({ text, index })
+								newTodo = ''
+							}}
+						>
+							<input placeholder="What needs to be done?" bind:value={newTodo} type="text" />
+							<!-- <button>Add</button> -->
+						</form>
+					</slot>
+				</div>
 			</div>
 
 			<!-- {JSON.stringify($t)} -->
-			<div class="relative flex h-full grow flex-col items-stretch overflow-hidden">
+			<div
+				style:padding-top="{listPaddingTop}px"
+				class="relative mx-auto flex h-full w-full max-w-screen-lg grow flex-col items-stretch overflow-hidden px-10"
+			>
 				<div class="flex h-full flex-auto flex-col overflow-hidden">
 					<div
 						bind:this={virtualListEl}
@@ -556,33 +568,35 @@
 				</div>
 			</div>
 			<div class="footer border-t py-2" bind:borderBoxSize={footerBorderBoxSize}>
-				<slot name="footer">
-					<div class="h-9 text-sm">
-						<p>{$available.filter(t => !t.completed).length} items left</p>
+				<div class="max-w-screen-lg mx-auto w-full">
+					<slot name="footer">
+						<div class="h-9 text-sm">
+							<p>{$available.filter(t => !t.completed).length} items left</p>
 
-						{#each ['All', 'Active', 'Completed'] as filterState}
-							<a
-								href="/?filter={filterState.toLowerCase()}"
-								class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
-							>
-						{/each}
-
-						<div>
-							{#if $available.some(t => t.completed)}
-								<button
-									on:click={async () => {
-										await rep.mutate.todo_delete({
-											ids: $available.filter(t => t.completed).map(t => t.id),
-											archive: true
-										})
-									}}
+							{#each ['All', 'Active', 'Completed'] as filterState}
+								<a
+									href="/?filter={filterState.toLowerCase()}"
+									class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
 								>
-									Clear completed
-								</button>
-							{/if}
+							{/each}
+
+							<div>
+								{#if $available.some(t => t.completed)}
+									<button
+										on:click={async () => {
+											await rep.mutate.todo_delete({
+												ids: $available.filter(t => t.completed).map(t => t.id),
+												archive: true
+											})
+										}}
+									>
+										Clear completed
+									</button>
+								{/if}
+							</div>
 						</div>
-					</div>
-				</slot>
+					</slot>
+				</div>
 			</div>
 		</div>
 	{/if}

@@ -39,9 +39,25 @@
 			})
 		}
 	})
+	let form: HTMLFormElement
 </script>
 
-<div class="flex h-full w-full shrink grow flex-col">
+<form
+	bind:this={form}
+	on:focusout={async e => {
+		console.log('focusout', e)
+		if (e.relatedTarget instanceof HTMLElement && form.contains(e.relatedTarget)) {
+			return
+		}
+		if ($page.url.pathname === '/list/new' && list?.id) {
+			console.log('navgatig')
+			await goto(`/list/${list.id}`, {
+				keepFocus: true
+			})
+		}
+	}}
+	class="flex h-full w-full shrink grow flex-col"
+>
 	<div class="flex items-center gap-2">
 		{#if type === 'project'}
 			<!-- <input type="checkbox" class="text-lg" /> -->
@@ -79,10 +95,13 @@
 					list = _list
 					_new = undefined
 					console.log({ $page, pathname: $page.url.pathname })
-					if ($page.url.pathname === '/list/new') {
-						console.log('navgatig')
-						await goto(`/list/${id}`)
-					}
+					// This causes problems with focus when tabbing
+					// if ($page.url.pathname === '/list/new') {
+					// 	console.log('navgatig')
+					// 	await goto(`/list/${id}`, {
+					//         keepFocus: true,
+					//     })
+					// }
 				} else if (list) {
 					if (list.name !== e.currentTarget.value.trim()) {
 						// list.name = e.currentTarget.value.trim()
@@ -101,6 +120,10 @@
 					e.currentTarget.blur()
 				}
 				if (e.key === 'ArrowDown') {
+					e.preventDefault()
+					notesTextarea?.focus()
+				}
+				if (e.key === 'Tab' && !e.shiftKey) {
 					e.preventDefault()
 					notesTextarea?.focus()
 				}
@@ -151,6 +174,10 @@
 						textInput?.focus()
 					}
 				}
+				if (e.key === 'Tab' && e.shiftKey) {
+					e.preventDefault()
+					textInput?.focus()
+				}
 			}}
 			on:blur={async e => {
 				if (list && (list.notes ?? '') !== e.currentTarget.value.trim()) {
@@ -169,4 +196,4 @@
 			placeholder="Notes"
 		/>
 	</div>
-</div>
+</form>

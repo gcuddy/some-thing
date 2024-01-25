@@ -10,5 +10,7 @@
 </script>
 
 {#if data.replicache}
-	<ListDetail replicache={data.replicache} new={data.type} />
+	<div class="mx-auto w-full max-w-screen-lg pl-14 pr-10">
+		<ListDetail replicache={data.replicache} new={data.type} />
+	</div>
 {/if}
