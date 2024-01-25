@@ -57,6 +57,8 @@
 	const parentlessLists = derived(lists, lists =>
 		lists.filter(list => !list.areaId && list.type !== 'area').sort(sortIndexes)
 	)
+
+	$: console.log({ $parentlessLists })
 	const areasAndChildren = derived(lists, lists => {
 		const areas = lists.filter(list => list.type === 'area').sort(sortIndexes)
 		const children = lists.filter(list => list.areaId).sort(sortIndexes)

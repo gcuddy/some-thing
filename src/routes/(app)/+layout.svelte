@@ -10,6 +10,7 @@
 	import { ModeWatcher } from 'mode-watcher'
 
 	import { gotoOpen } from '@/stores/goto'
+	import { browser } from '$app/environment'
 	export let data: LayoutData
 
 	if (data.replicache) setReplicache(data.replicache)
@@ -67,6 +68,14 @@
 {#if data.replicache}
 	<Goto bind:open={$gotoOpen} rep={data.replicache} />
 {/if}
+<svelte:window
+	on:online={() => {
+		console.log('onlline')
+		if (data.replicache) {
+			data.replicache.pull()
+		}
+	}}
+/>
 
 <style lang="postcss">
 	:global(html) {

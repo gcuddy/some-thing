@@ -7,6 +7,8 @@
 	import { ArrowElbowLeft } from 'phosphor-svelte'
 	import { getReplicache } from '../../routes/(app)/replicache'
 	import { createMultiSelectHandler } from '@/actions/multi-select'
+	import { writable } from 'svelte/store'
+	import { getSelected } from './sidebar.svelte'
 
 	const rep = getReplicache()
 
@@ -33,6 +35,7 @@
 	}
 
 	const idToLastIndex = new Map<string, number>()
+	console.log({ lists })
 	for (let i = 0; i < lists.length; i++) {
 		idToLastIndex.set(lists[i].id, i)
 	}
@@ -40,16 +43,19 @@
 	function handleSort(e: CustomEvent<DndEvent<List>>) {
 		lists = e.detail.items
 	}
+
+	function setList(l: List[]) {}
+
 	async function handleFinalize(e: CustomEvent<DndEvent<List>>) {
-		lists = e.detail.items
-		const i = lists.findIndex(l => l.id === e.detail.info.id)
+		const i = e.detail.items.findIndex(l => l.id === e.detail.info.id)
 		console.log({ i, id: e.detail.info.id, idToLastIndex })
-		if (i === idToLastIndex.get(e.detail.info.id)) return
+		// if (i === idToLastIndex.get(e.detail.info.id)) return
 		// find correct index
 		if (i === -1) return
 		idToLastIndex.set(e.detail.info.id, i)
 		if (i === 0) {
 			const sortIndex = (lists[0].index ?? 0) - 100
+			lists = e.detail.items
 			await rep.mutate.list_update({
 				id: [e.detail.info.id],
 				data: {
@@ -59,6 +65,8 @@
 			})
 		} else if (i === lists.length - 1) {
 			const sortIndex = (lists[lists.length - 1].index ?? 0) + 100
+
+			lists = e.detail.items
 			await rep.mutate.list_update({
 				id: [e.detail.info.id],
 				data: {
@@ -77,6 +85,7 @@
 					// then we need to move it to the left
 					for (let i = 0; i < left.length; i++) {
 						left[i].index = (left[i].index ?? 0) - 100
+						lists = e.detail.items
 						await rep.mutate.list_update({
 							id: [left[i].id],
 							data: {
@@ -89,6 +98,7 @@
 					// then we need to move it to the right
 					for (let i = 0; i < right.length; i++) {
 						right[i].index = (right[i].index ?? 0) + 100
+						lists = e.detail.items
 						await rep.mutate.list_update({
 							id: [right[i].id],
 							data: {
@@ -100,9 +110,11 @@
 				}
 			} else {
 				// we're good to go
+				lists = e.detail.items
 				await rep.mutate.list_update({
 					id: [e.detail.info.id],
 					data: {
+						areaId,
 						index: sortIndex
 					}
 				})
@@ -127,6 +139,10 @@
 			}
 		}
 	}
+
+	const contextMenuSelected = writable<string[]>([])
+
+	const selected = getSelected()
 </script>
 
 <div
@@ -145,6 +161,19 @@
 	{#each lists as list, index (list.id)}
 		<div class="flex w-full flex-col" animate:flip={{ duration: flipDurationMs }}>
 			<SidebarListLink
+				selectedIds={$selected}
+				onChange={open => {
+					if (open) {
+						// check if id is in selected
+						if ($selected.includes(list.id)) {
+							contextMenuSelected.set($selected)
+						} else {
+							contextMenuSelected.set([list.id])
+						}
+					} else {
+						contextMenuSelected.set([])
+					}
+				}}
 				on:click={e => {
 					if (e.shiftKey) {
 						e.preventDefault()
@@ -152,8 +181,9 @@
 					if (multi) multi.handleClick(e)
 				}}
 				{list}
-                lists={lists}
+				{lists}
 				data-sidebar-list-item
+				class={cn($contextMenuSelected.includes(list.id) && 'border-accent')}
 			/>
 			{#if list.children}
 				<svelte:self lists={list.children} type="list" areaId={list.id} />

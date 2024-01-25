@@ -244,6 +244,11 @@
 		// })
 		return
 	}
+
+	export function getMinIndex() {
+		console.log('getting min index', $available)
+		return $available[0]?.index ?? 0
+	}
 </script>
 
 <svelte:window
@@ -568,7 +573,7 @@
 				</div>
 			</div>
 			<div class="footer border-t py-2" bind:borderBoxSize={footerBorderBoxSize}>
-				<div class="max-w-screen-lg mx-auto w-full">
+				<div class="mx-auto w-full max-w-screen-lg">
 					<slot name="footer">
 						<div class="h-9 text-sm">
 							<p>{$available.filter(t => !t.completed).length} items left</p>

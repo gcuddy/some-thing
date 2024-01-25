@@ -24,29 +24,29 @@ const mutators = new Client<ServerType>()
 	})
 	.mutation('todo_create', async (tx, data) => {
 		const id = data.id ?? createId()
-		const todos = await TodoStore.list(tx)
+		// const todos = await TodoStore.list(tx)
 
-		console.log('todo_create', { id, data, todos })
-		//  get min index
-		const index =
-			data.index ??
-			todos.reduce((min, todo) => {
-				const index = todo.index ?? 0
-				if (index < min) {
-					return index
-				}
-				return min
-			}, 0) - 1
+		// console.log('todo_create', { id, data, todos })
+		// //  get min index
+		// const index =
+		// 	data.index ??
+		// 	todos.reduce((min, todo) => {
+		// 		const index = todo.index ?? 0
+		// 		if (index < min) {
+		// 			return index
+		// 		}
+		// 		return min
+		// 	}, 0) - 1
 
-		console.log('mutator', { index })
+		// console.log('mutator', { index })
 
 		await TodoStore.put(tx, [id], {
 			...data,
 			completed: null,
 			id,
 			text: data.text,
-			archivedAt: null,
-			index
+			archivedAt: null
+			// index
 		})
 	})
 	.mutation('todo_update', async (tx, { id: ids, data }) => {
@@ -113,8 +113,9 @@ export function createReplicache() {
 		pushURL: '/api/party?push',
 		pullURL: '/api/party?pull',
 		mutators,
-		pullInterval: 1000 * 60,
-		pushDelay: 1000 * 2
+		// higher speed for testing
+		pullInterval: 1000 * 5
+		// pushDelay: 1000 * 2
 	})
 
 	replicache.onSync = s => syncing.set(s)

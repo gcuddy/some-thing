@@ -11,6 +11,8 @@
 	import { recents } from '@/components/goto/store'
 	export let data
 
+    $: console.log({data})
+
 	let list: ReturnType<ReturnType<typeof ListStore.get.watch>>
 
 	$: if (data.replicache)
@@ -56,6 +58,8 @@
 	// })
 </script>
 
+
+
 {#if $list && data.replicache}
 	<Todo
 		bind:this={todo}
@@ -73,14 +77,20 @@
 			}}
 		/>
 	</Todo>
-	<Dialog.Root bind:open={newTodoOpen}>
+	<Dialog.Root openFocus={"[data-todo-input]"} bind:open={newTodoOpen}>
 		<Dialog.Overlay />
-		<Dialog.Content>
+		<Dialog.Content >
 			<NewTodo
 				on:submit={async ({ detail }) => {
 					newTodoOpen = false
+					let sortIndex = -100
+					if (todo) {
+						sortIndex = todo.getMinIndex() - 100
+					}
+					console.log({ sortIndex })
 					await data.replicache?.mutate.todo_create({
 						...detail,
+						index: sortIndex,
 						listId: data.id
 					})
 				}}

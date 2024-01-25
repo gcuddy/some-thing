@@ -5,7 +5,7 @@
 	import DatePicker from './ui/date-picker.svelte'
 
 	export let todo: Pick<Todo, 'text' | 'notes' | 'completed'>
-
+	export let autofocus: true | undefined = undefined
 	let form: HTMLFormElement
 	let textInput: HTMLInputElement
 	let textarea: HTMLTextAreaElement
@@ -48,6 +48,7 @@
 	<div class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4">
 		<label class="sr-only" for="completed"> Completed </label>
 		<input
+			{autofocus}
 			type="checkbox"
 			class="mt-2 flex self-start"
 			id="completed"
