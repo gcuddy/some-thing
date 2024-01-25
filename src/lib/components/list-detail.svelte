@@ -11,9 +11,15 @@
 	import { capitalize } from '@/util/capitalize'
 	import { onMount } from 'svelte'
 	import { sleep } from '@/util/sleep'
+	import { ListStore } from '@/data/list'
 
 	export let replicache: ReplicacheType
 	export let list: Pick<List, 'id' | 'name' | 'notes' | 'type'> | null = null
+	export const lists = ListStore.list.watch(
+		() => replicache,
+		() => []
+	)()
+
 	$: console.log({ list, _new })
 
 	let notesTextarea: HTMLTextAreaElement
@@ -53,11 +59,20 @@
 				console.log({ _new, e, list })
 				if (_new && e.currentTarget.value.trim()) {
 					const id = createId()
+					const sortIndex =
+						$lists.reduce((min, list) => {
+							const index = list.index ?? 0
+							if (index < min) {
+								return index
+							}
+							return min
+						}, 0) - 100
 					const _list = {
 						id,
 						name: e.currentTarget.value.trim(),
 						notes: '',
-						type: _new
+						type: _new,
+						index: sortIndex
 					}
 					console.log('creating list', { _list })
 					await replicache.mutate.list_create(_list)

@@ -8,10 +8,13 @@
 		Cube,
 		ListChecks,
 		Plus,
+		Sidebar,
 		SlidersHorizontal,
 		Star,
 		Tray
 	} from 'phosphor-svelte'
+	import autoAnimate from '@formkit/auto-animate'
+
 	import Button from './ui/button/button.svelte'
 	import Settings from '../../routes/(app)/(settings)/settings/+page.svelte'
 	import { goto, preloadData, pushState } from '$app/navigation'
@@ -43,7 +46,7 @@
 		lists.filter(list => !list.areaId && list.type !== 'area').sort(sortIndexes)
 	)
 	const areasAndChildren = derived(lists, lists => {
-		const areas = lists.filter(list => list.type === "area").sort(sortIndexes)
+		const areas = lists.filter(list => list.type === 'area').sort(sortIndexes)
 		const children = lists.filter(list => list.areaId).sort(sortIndexes)
 		return areas.map(area => {
 			return {
@@ -107,27 +110,9 @@
 						Upcoming
 					</SidebarLink>
 				</div>
-				<div class="flex flex-col gap-4">
-                   <SidebarDragRegion lists={$parentlessLists} />
-					<!-- <div class="flex flex-col">
-						{#each $parentlessLists as list}
-							<SidebarListLink {list}>
-								{list.name}
-							</SidebarListLink>
-						{/each}
-					</div> -->
-					{#each $areasAndChildren as area}
-						<div class="flex flex-col">
-							<SidebarListLink list={area}>
-								{area.name}
-							</SidebarListLink>
-							{#each area.children as child}
-								<SidebarListLink list={child}>
-									{child.name}
-								</SidebarListLink>
-							{/each}
-						</div>
-					{/each}
+				<div use:autoAnimate class="flex flex-col gap-4">
+					<SidebarDragRegion lists={$parentlessLists} />
+					<SidebarDragRegion type="area" class="gap-2" lists={$areasAndChildren} />
 				</div>
 			</div>
 		</div>

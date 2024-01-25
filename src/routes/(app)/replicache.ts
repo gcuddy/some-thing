@@ -68,9 +68,23 @@ const mutators = new Client<ServerType>()
 	})
 	.mutation('list_create', async (tx, input) => {
 		const id = input.id ?? createId()
+		let { index, ...rest } = input
+		if (index === undefined || index === null) {
+			const lists = await ListStore.list(tx)
+			index =
+				lists.reduce((min, list) => {
+					const index = list.index ?? 0
+					if (index < min) {
+						return index
+					}
+					return min
+				}, 0) - 100
+			console.log('list_create', { index })
+		}
 		await ListStore.put(tx, [id], {
 			id,
-			...input
+			...rest,
+			index
 		})
 	})
 	.mutation('list_update', async (tx, { id: ids, data }) => {
