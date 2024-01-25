@@ -41,7 +41,7 @@
 	})
 </script>
 
-<div class="flex h-full w-full shrink grow flex-col px-16 pt-10">
+<div class="flex h-full w-full shrink grow flex-col">
 	<div class="flex items-center gap-2">
 		{#if type === 'project'}
 			<!-- <input type="checkbox" class="text-lg" /> -->

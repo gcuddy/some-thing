@@ -307,228 +307,241 @@
 		moverOpen = false
 	}}
 />
-{#if $ready}
-	<div bind:this={wrapper} class="flex h-full grow flex-col">
-		<div class="header" bind:contentRect={headerContentRect}>
-			<slot name="header">
-				<button
-					disabled={!$available.length}
-					on:click={async () => {
-						await rep.mutate.todo_update({
-							id: $available.map(t => t.id),
-							data: {
-								completed: !allFiltered ? new Date() : null
-							}
-						})
-					}}
-				>
-					{#if allFiltered}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="16"
-							height="16"
-							fill="#000000"
-							viewBox="0 0 256 256"
-							><path
-								d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"
-							></path></svg
-						>
-					{:else}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="16"
-							height="16"
-							fill="#000000"
-							viewBox="0 0 256 256"
-							><path
-								d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
-							></path></svg
-						>
-					{/if}
-					<VisuallyHidden>Mark all as {allFiltered ? 'un-complete' : 'completed'}</VisuallyHidden>
-				</button>
-				<form
-					on:submit|preventDefault={async () => {
-						const text = newTodo.trim()
-						if (text === '') {
-							return
-						}
-						console.log({ $available })
-						const minIndex = $available[0]?.index ?? 0
-						console.log({ minIndex })
-						const index = minIndex - 100
-						console.log({ index })
-						await rep.mutate.todo_create({ text, index })
-						newTodo = ''
-					}}
-				>
-					<input placeholder="What needs to be done?" bind:value={newTodo} type="text" />
-					<!-- <button>Add</button> -->
-				</form>
-			</slot>
-		</div>
-
-		<!-- {JSON.stringify($t)} -->
-		<div class="relative flex h-full grow flex-col items-stretch overflow-hidden px-10">
-			<div class="flex h-full flex-auto flex-col overflow-hidden">
-				<div
-					bind:this={virtualListEl}
-					style:height={virtualListHeight}
-					class="relative w-full overflow-auto will-change-transform"
-				>
-					<ul bind:this={ul} class="relative w-full" style:height="{$virtualizer.getTotalSize()}px">
-						{#each $virtualizer.getVirtualItems() as row (row.key)}
-							{@const todo = $available[row.index]}
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-							<li
-								on:click={e => {
-									// if (e.target instanceof HTMLInputElement) {
-									// 	return
-									// }
-									if (e.shiftKey) {
-										navigator.selectAdjacent(e.currentTarget)
-									} else {
-										navigator.focus(e.currentTarget)
-									}
-								}}
-								data-element="todo"
-								data-todo-id={todo.id}
-								data-completed={todo.completed ? 'true' : undefined}
-								class="absolute left-0 top-0 w-full rounded px-2 py-1 text-sm data-[focus=true]:bg-blue-200 data-[selected=true]:bg-blue-100"
-								style:height="{row.size}px"
-								style:transform="translateY({row.start}px)"
-								animate:flip={{
-									duration: 150,
-									easing: cubicInOut
-								}}
+<div class="w-full mx-auto grow">
+	{#if $ready}
+		<div bind:this={wrapper} class="mx-auto flex h-full max-w-screen-lg grow flex-col gap-12 px-10">
+			<div class="header pl-4" bind:contentRect={headerContentRect}>
+				<slot name="header">
+					<button
+						disabled={!$available.length}
+						on:click={async () => {
+							await rep.mutate.todo_update({
+								id: $available.map(t => t.id),
+								data: {
+									completed: !allFiltered ? new Date() : null
+								}
+							})
+						}}
+					>
+						{#if allFiltered}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								fill="#000000"
+								viewBox="0 0 256 256"
+								><path
+									d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"
+								></path></svg
 							>
-								<div class="flex items-center gap-2.5">
-									<div
-										data-date-picker-wrapper
-										class="flex items-center justify-center opacity-0 transition hover:opacity-100"
-									>
-										<DatePicker
-											value={todo.startDate
-												? fromDate(new Date(todo.startDate), getLocalTimeZone())
-												: undefined}
-											onChange={async date => {
-												const selected = navigator.selected
-												const ids = new Set([todo.id])
-												if (selected.length) {
-													for (const el of selected) {
-														if (el.dataset.todoId) ids.add(el.dataset.todoId)
-													}
-												}
-												const idsToChange = Array.from(ids).filter(id => {
-													const todo = $available.find(t => t.id === id)
-													if (!todo) return false
-													if (!todo.startDate) return true
-													if (new Date(todo.startDate)?.toISOString() === date?.toISOString())
-														return false
-													return true
-												})
-												console.log('onChange!', { idsToChange, date })
-												if (!idsToChange.length) return
-												await rep.mutate.todo_update({
-													id: Array.from(ids),
-													data: {
-														startDate: date ?? null
-													}
-												})
-											}}
-											class="h-4 w-4 text-muted-foreground"
-										/>
-									</div>
-									<input
-										on:change={async e => {
-											if (e.target instanceof HTMLInputElement) {
-												await rep.mutate.todo_update({
-													id: [todo.id],
-													data: {
-														completed: Boolean(e.target.checked) ? new Date() : null
-													}
-												})
-											}
-										}}
-										type="checkbox"
-										checked={!!todo.completed}
-										class="transition active:scale-105"
-									/>
-									<a
-										class="flex cursor-default items-center"
-										href="/task/{todo.id}"
-										on:click={e => {
-											console.log('click', e)
-											if (e.metaKey || e.ctrlKey || innerWidth < 640) return
-											e.preventDefault()
-											if (!e.isTrusted) {
-												// indicating it came from .click programattic call
-												pushHrefToModal(e.currentTarget.href)
-											}
-										}}
-										on:dblclick={async e => {
-											// if opening new tab or screen is too small, bail
-											if (e.metaKey || e.ctrlKey || innerWidth < 640) return
-											e.preventDefault()
-											await pushHrefToModal(e.currentTarget.href)
-										}}
-									>
-										{#if !!showDates && todo.startDate}
-											{@const date = formatDate(todo.startDate)}
-											{#if date.type === 'today' || showDates === 'today'}
-												<svelte:component
-													this={todayDate.icon}
-													{...todayDate.props}
-													class="mr-1.5 h-4 w-4 {todayDate.props.class ?? ''}"
-												/>
-											{:else}
-												<div
-													class="mr-1.5 rounded bg-secondary/80 px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground/70"
-												>
-													{date.shortText}
-												</div>
-											{/if}
-											<!-- <span class="ml-1 text-xs text-gray-500">{todo.startDate}</span> -->
-										{/if}
-										{#if editing === todo.id}
-											<!-- svelte-ignore a11y-autofocus -->
-											<input
-												on:keydown={e => {
-													if (e.target instanceof HTMLInputElement) {
-														if (e.key === 'Enter') {
-															e.target.blur()
-														} else if (e.key === 'Escape') {
-															editing = null
+						{:else}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								fill="#000000"
+								viewBox="0 0 256 256"
+								><path
+									d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
+								></path></svg
+							>
+						{/if}
+						<VisuallyHidden>Mark all as {allFiltered ? 'un-complete' : 'completed'}</VisuallyHidden>
+					</button>
+					<form
+						on:submit|preventDefault={async () => {
+							const text = newTodo.trim()
+							if (text === '') {
+								return
+							}
+							console.log({ $available })
+							const minIndex = $available[0]?.index ?? 0
+							console.log({ minIndex })
+							const index = minIndex - 100
+							console.log({ index })
+							await rep.mutate.todo_create({ text, index })
+							newTodo = ''
+						}}
+					>
+						<input placeholder="What needs to be done?" bind:value={newTodo} type="text" />
+						<!-- <button>Add</button> -->
+					</form>
+				</slot>
+			</div>
+
+			<!-- {JSON.stringify($t)} -->
+			<div class="relative flex h-full grow flex-col items-stretch overflow-hidden">
+				<div class="flex h-full flex-auto flex-col overflow-hidden">
+					<div
+						bind:this={virtualListEl}
+						style:height={virtualListHeight}
+						class="relative w-full overflow-auto will-change-transform"
+					>
+						<ul
+							bind:this={ul}
+							class="relative w-full"
+							style:height="{$virtualizer.getTotalSize()}px"
+						>
+							{#each $virtualizer.getVirtualItems() as row (row.key)}
+								{@const todo = $available[row.index]}
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+								<li
+									on:click={e => {
+										// if (e.target instanceof HTMLInputElement) {
+										// 	return
+										// }
+										if (e.shiftKey) {
+											navigator.selectAdjacent(e.currentTarget)
+										} else {
+											navigator.focus(e.currentTarget)
+										}
+									}}
+									data-element="todo"
+									data-todo-id={todo.id}
+									data-completed={todo.completed ? 'true' : undefined}
+									class="group absolute left-0 top-0 w-full"
+									style:height="{row.size}px"
+									style:transform="translateY({row.start}px)"
+									animate:flip={{
+										duration: 150,
+										easing: cubicInOut
+									}}
+									on:dblclick={async e => {
+										// if opening new tab or screen is too small, bail
+										if (e.metaKey || e.ctrlKey || innerWidth < 640) return
+										e.preventDefault()
+										const a = e.currentTarget.querySelector('a')
+										if (a) await pushHrefToModal(a.href)
+									}}
+								>
+									<div class="flex h-full w-full grow items-center">
+										<div
+											data-date-picker-wrapper
+											class="flex h-full items-center justify-center opacity-0 transition hover:opacity-100"
+										>
+											<DatePicker
+												value={todo.startDate
+													? fromDate(new Date(todo.startDate), getLocalTimeZone())
+													: undefined}
+												onChange={async date => {
+													const selected = navigator.selected
+													const ids = new Set([todo.id])
+													if (selected.length) {
+														for (const el of selected) {
+															if (el.dataset.todoId) ids.add(el.dataset.todoId)
 														}
 													}
+													const idsToChange = Array.from(ids).filter(id => {
+														const todo = $available.find(t => t.id === id)
+														if (!todo) return false
+														if (!todo.startDate) return true
+														if (new Date(todo.startDate)?.toISOString() === date?.toISOString())
+															return false
+														return true
+													})
+													console.log('onChange!', { idsToChange, date })
+													if (!idsToChange.length) return
+													await rep.mutate.todo_update({
+														id: Array.from(ids),
+														data: {
+															startDate: date ?? null
+														}
+													})
 												}}
-												on:blur={async e => {
+												class="h-4 w-4 text-muted-foreground"
+											/>
+										</div>
+										<div
+											class="flex h-full w-full grow cursor-default items-center gap-2.5 rounded px-2 py-1 text-sm group-data-[focus=true]:bg-blue-200 group-data-[selected=true]:bg-blue-200 dark:group-data-[focus=true]:bg-blue-500/50 dark:group-data-[selected=true]:bg-blue-500/50"
+										>
+											<input
+												on:change={async e => {
 													if (e.target instanceof HTMLInputElement) {
 														await rep.mutate.todo_update({
 															id: [todo.id],
 															data: {
-																text: e.target.value
+																completed: Boolean(e.target.checked) ? new Date() : null
 															}
 														})
-														editing = null
 													}
 												}}
-												type="text"
-												value={todo.text}
-												class="edit"
-												autofocus
+												type="checkbox"
+												checked={!!todo.completed}
+												class="transition active:scale-105"
 											/>
-										{:else}
-											<span class:done={todo.completed} role="listitem">{todo.text}</span>
-										{/if}
+											<a
+												href="/task/{todo.id}"
+												on:click={e => {
+													console.log('click', e)
+													if (e.metaKey || e.ctrlKey || innerWidth < 640) return
+													e.preventDefault()
+													if (!e.isTrusted) {
+														// indicating it came from .click programattic call
+														pushHrefToModal(e.currentTarget.href)
+													}
+												}}
+												class="flex grow cursor-default items-center"
+											>
+												{#if !!showDates && todo.startDate}
+													{@const date = formatDate(todo.startDate)}
+													{#if date.type === 'today' || showDates === 'today'}
+														<svelte:component
+															this={todayDate.icon}
+															{...todayDate.props}
+															class="mr-1.5 h-4 w-4 {todayDate.props.class ?? ''}"
+														/>
+													{:else}
+														<div
+															class="mr-1.5 rounded bg-secondary/80 px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground/70"
+														>
+															{date.shortText}
+														</div>
+													{/if}
+													<!-- <span class="ml-1 text-xs text-gray-500">{todo.startDate}</span> -->
+												{/if}
+												{#if editing === todo.id}
+													<!-- svelte-ignore a11y-autofocus -->
+													<input
+														on:keydown={e => {
+															if (e.target instanceof HTMLInputElement) {
+																if (e.key === 'Enter') {
+																	e.target.blur()
+																} else if (e.key === 'Escape') {
+																	editing = null
+																}
+															}
+														}}
+														on:blur={async e => {
+															if (e.target instanceof HTMLInputElement) {
+																await rep.mutate.todo_update({
+																	id: [todo.id],
+																	data: {
+																		text: e.target.value
+																	}
+																})
+																editing = null
+															}
+														}}
+														type="text"
+														value={todo.text}
+														class="edit"
+														autofocus
+													/>
+												{:else}
+													<span class:done={todo.completed} role="listitem">{todo.text}</span>
+												{/if}
 
-										{#if !!todo.notes}
-											<NoteBlank weight="light" class="ml-1.5 h-3.5 w-3.5 text-gray-600" />
-										{/if}
-									</a>
-								</div>
-								<!-- <a href="/task/{todo.id}">#</a>
+												{#if !!todo.notes}
+													<NoteBlank
+														weight="light"
+														class="ml-1.5 h-3.5 w-3.5 text-muted-foreground"
+													/>
+												{/if}
+											</a>
+										</div>
+									</div>
+									<!-- <a href="/task/{todo.id}">#</a>
 					<button
 						on:click={async () => {
 							await rep.mutate.todo_delete({
@@ -536,44 +549,44 @@
 							})
 						}}>Delete</button
 					> -->
-							</li>
-						{/each}
-					</ul>
-				</div>
-			</div>
-		</div>
-		<div class="footer border-t py-2" bind:borderBoxSize={footerBorderBoxSize}>
-			<slot name="footer">
-				<div class="h-9 text-sm">
-					<p>{$available.filter(t => !t.completed).length} items left</p>
-
-					{#each ['All', 'Active', 'Completed'] as filterState}
-						<a
-							href="/?filter={filterState.toLowerCase()}"
-							class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
-						>
-					{/each}
-
-					<div>
-						{#if $available.some(t => t.completed)}
-							<button
-								on:click={async () => {
-									await rep.mutate.todo_delete({
-										ids: $available.filter(t => t.completed).map(t => t.id),
-										archive: true
-									})
-								}}
-							>
-								Clear completed
-							</button>
-						{/if}
+								</li>
+							{/each}
+						</ul>
 					</div>
 				</div>
-			</slot>
-		</div>
-	</div>
-{/if}
+			</div>
+			<div class="footer border-t py-2" bind:borderBoxSize={footerBorderBoxSize}>
+				<slot name="footer">
+					<div class="h-9 text-sm">
+						<p>{$available.filter(t => !t.completed).length} items left</p>
 
+						{#each ['All', 'Active', 'Completed'] as filterState}
+							<a
+								href="/?filter={filterState.toLowerCase()}"
+								class={filter === filterState.toLowerCase() ? 'selected' : ''}>{filterState}</a
+							>
+						{/each}
+
+						<div>
+							{#if $available.some(t => t.completed)}
+								<button
+									on:click={async () => {
+										await rep.mutate.todo_delete({
+											ids: $available.filter(t => t.completed).map(t => t.id),
+											archive: true
+										})
+									}}
+								>
+									Clear completed
+								</button>
+							{/if}
+						</div>
+					</div>
+				</slot>
+			</div>
+		</div>
+	{/if}
+</div>
 <Dialog.Root
 	open={dialogOpen}
 	onOpenChange={open => {

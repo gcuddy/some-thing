@@ -33,7 +33,8 @@ export const todayDate = {
 
 export function formatDate(
 	date: Date | string,
-	locale = 'en-US'
+	locale = 'en-US',
+	pastAsToday = true
 ): {
 	text: string
 	icon: ComponentType
@@ -75,7 +76,7 @@ export function formatDate(
 		year: 'numeric'
 	})
 
-	if (isSameDay(dt, t)) {
+	if (isSameDay(dt, t) || (pastAsToday && dt.compare(t) < 0)) {
 		return {
 			text: 'Today',
 			icon: Star,
