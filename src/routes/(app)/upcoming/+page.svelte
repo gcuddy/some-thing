@@ -17,14 +17,11 @@
 	}
 
 	afterNavigate(() => {
-		recents.add('Today')
+		recents.add('Upcoming')
 	})
 </script>
 
 <div class="mx-auto w-[calc(100%)] grow">
 	<!-- <h1>todos</h1> -->
-	<Todo
-		bind:this={todo}
-		filterFn={filterFn}
-	/>
+	<Todo bind:this={todo} {filterFn} />
 </div>

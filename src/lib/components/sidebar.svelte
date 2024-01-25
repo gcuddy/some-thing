@@ -1,6 +1,14 @@
 <script lang="ts">
 	import { syncing } from '$lib/stores/sync'
-	import { ArrowsClockwise, Cloud, Plus, SlidersHorizontal, Star, Tray } from 'phosphor-svelte'
+	import {
+		ArrowsClockwise,
+		Calendar,
+		Cloud,
+		Plus,
+		SlidersHorizontal,
+		Star,
+		Tray
+	} from 'phosphor-svelte'
 	import Button from './ui/button/button.svelte'
 	import Settings from '../../routes/(app)/(settings)/settings/+page.svelte'
 	import { goto, preloadData, pushState } from '$app/navigation'
@@ -12,6 +20,8 @@
 	import { derived } from 'svelte/store'
 	import SidebarLink from './sidebar-link.svelte'
 	import { filterFn } from '../../routes/(app)/today/filter'
+	import * as DropdownMenu from './ui/dropdown-menu'
+	import { flyAndScale } from '@/util/style'
 	let settingsOpen = false
 
 	export let rep: ReplicacheType
@@ -70,6 +80,10 @@
 						Today
 						<span class="ml-auto text-sm text-muted-foreground/85">{$todayCount}</span>
 					</SidebarLink>
+					<SidebarLink class="font-medium" href="/upcoming">
+						<Calendar weight="fill" class="mr-1.5 h-4 w-4 text-red-400" />
+						Upcoming
+					</SidebarLink>
 				</div>
 				<div class="flex flex-col">
 					{#each $lists as list}
@@ -81,10 +95,24 @@
 			</div>
 		</div>
 		<div class="flex justify-between border-t px-3.5 py-2">
-			<Button href="/list/new" variant="ghostOutline" class="text-sm text-muted-foreground">
-				<Plus class="mr-1.5" />
-				New list
-			</Button>
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger asChild let:builder>
+					<Button builders={[builder]} variant="ghostOutline" class="text-sm text-muted-foreground">
+						<Plus class="mr-1.5" />
+						New list
+					</Button></DropdownMenu.Trigger
+				>
+				<DropdownMenu.Content
+					transition={flyAndScale}
+					transitionConfig={{
+						y: 8
+					}}
+				>
+					<DropdownMenu.Item>Project</DropdownMenu.Item>
+					<DropdownMenu.Item>Area</DropdownMenu.Item>
+					<DropdownMenu.Item>List</DropdownMenu.Item>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 			<Button
 				on:click={async e => {
 					if (e.metaKey || e.ctrlKey || innerWidth < 640) return

@@ -1,4 +1,4 @@
-import { Star, Tray } from 'phosphor-svelte'
+import { Calendar, Star, Tray } from 'phosphor-svelte'
 import type { SpecialListItem } from './types'
 
 export const specials = [
@@ -25,6 +25,19 @@ export const specials = [
 			iconClass: 'text-accent',
 			iconProps: {
 				weight: 'duotone'
+			}
+		}
+	},
+	{
+		type: 'special',
+		data: {
+			href: '/upcoming',
+			id: '__special__:upcoming',
+			name: 'Upcoming',
+			icon: Calendar,
+			iconClass: 'text-red-400',
+			iconProps: {
+				weight: 'fill'
 			}
 		}
 	}
