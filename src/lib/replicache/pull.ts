@@ -1,19 +1,16 @@
-import type { PatchOperation, PullRequestV1, PushRequestV1 } from 'replicache'
-import { createTransaction } from '../util/transaction'
-import type { DB } from '../core/drizzle'
 import {
 	replicacheClient,
 	replicacheClientGroup,
 	replicacheCvr
 } from '$lib/core/replicache/replicache.sql'
-import { and, eq, gt, inArray, isNull, lt, SQL, sql, type SQLWrapper } from 'drizzle-orm'
-import { server } from './server'
-import { VisibleError } from '$lib/util/error'
-import { withUser } from '$lib/core/user'
 import { todos } from '$lib/core/todo/todo.sql'
-import type { SQLiteColumn } from 'drizzle-orm/sqlite-core'
-import { equals, groupBy, mapValues, pipe, toPairs } from 'remeda'
 import { lists } from '@/core/list/list.sql'
+import { SQL, and, eq, gt, inArray, isNull, lt, sql, type SQLWrapper } from 'drizzle-orm'
+import type { SQLiteColumn } from 'drizzle-orm/sqlite-core'
+import { groupBy, mapValues, pipe, toPairs } from 'remeda'
+import type { PatchOperation, PullRequestV1 } from 'replicache'
+import type { DB } from '../core/drizzle'
+import { createTransaction } from '../util/transaction'
 
 export const TABLES = {
 	lists,
@@ -111,6 +108,8 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 
 		let combined: any = undefined
 		let now = Date.now()
+
+		console.log('tables', Object.keys(TABLES))
 
 		for (const [name, table] of Object.entries(TABLES)) {
 			const key = TABLE_KEY[name as TableName] ?? [table.id]
