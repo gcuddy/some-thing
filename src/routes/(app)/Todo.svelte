@@ -112,7 +112,7 @@
 
 	let headerBorderBoxSize: ResizeObserverEntry['borderBoxSize']
 	let footerBorderBoxSize: ResizeObserverEntry['borderBoxSize']
-	const listPaddingTop = 48
+	const listPaddingTop = 24
 
 	let wrapper: HTMLDivElement
 
