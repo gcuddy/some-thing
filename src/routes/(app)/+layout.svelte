@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Sidebar from '$lib/components/sidebar.svelte'
 	import Goto from '@/components/goto/goto.svelte'
-	// import { ModeWatcher } from 'mode-watcher'
+	import { ModeWatcher } from 'mode-watcher'
 	import PartySocket from 'partysocket'
 	import { onMount } from 'svelte'
 	import '../../app.css'
@@ -51,7 +51,7 @@
 	})
 </script>
 
-<!-- <ModeWatcher /> -->
+<ModeWatcher />
 
 <div class="flex h-full w-full flex-row items-stretch overflow-hidden">
 	<aside class="w-60 max-sm:hidden">
