@@ -14,13 +14,13 @@
     export let wrapperClass = ''
 </script>
 
-<div class={cn('flex items-center border-b px-3', wrapperClass)} data-cmdk-input-wrapper="">
+<div class={cn('flex items-center border-b px-3 dark:bg-gray-700 rounded', wrapperClass)} data-cmdk-input-wrapper="">
 	{#if icon}
 		<MagnifyingGlass class="mr-2 h-4 w-4 shrink-0 opacity-50" />
 	{/if}
 	<CommandPrimitive.Input
 		class={cn(
-			'flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
+			'flex h-7 w-full rounded-md bg-transparent py-1 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 ',
 			className
 		)}
 		{...$$restProps}

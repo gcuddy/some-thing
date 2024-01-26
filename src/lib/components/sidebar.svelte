@@ -10,39 +10,35 @@
 
 <script lang="ts">
 	import { syncing } from '$lib/stores/sync'
+	import autoAnimate from '@formkit/auto-animate'
 	import {
-		ArrowsClockwise,
 		Calendar,
 		CircleHalf,
 		Cloud,
 		Cube,
 		ListChecks,
 		Plus,
-		Sidebar,
 		SlidersHorizontal,
 		Star,
 		Tray
 	} from 'phosphor-svelte'
-	import autoAnimate from '@formkit/auto-animate'
 
-	import Button from './ui/button/button.svelte'
-	import Settings from '../../routes/(app)/(settings)/settings/general/+page.svelte'
 	import { goto, preloadData, pushState } from '$app/navigation'
 	import * as Dialog from '$lib/components/ui/dialog'
-	import { page } from '$app/stores'
-	import { getReplicache, type ReplicacheType } from '../../routes/(app)/replicache'
 	import { ListStore } from '@/data/list'
 	import { TodoStore } from '@/data/todo'
-	import { derived, writable, type Writable } from 'svelte/store'
-	import SidebarLink from './sidebar-link.svelte'
-	import { filterFn } from '../../routes/(app)/today/filter'
-	import * as DropdownMenu from './ui/dropdown-menu'
-	import { flyAndScale } from '@/util/style'
 	import { sortIndexes } from '@/util/sort'
-	import SidebarListLink from './sidebar-list-link.svelte'
-	import SidebarDragRegion from './sidebar-drag-region.svelte'
+	import { flyAndScale } from '@/util/style'
 	import { getContext, setContext } from 'svelte'
-	let settingsOpen = false
+	import { derived, writable } from 'svelte/store'
+	import Settings from '../../routes/(app)/(settings)/settings/general/+page.svelte'
+	import { type ReplicacheType } from '../../routes/(app)/replicache'
+	import { filterFn } from '../../routes/(app)/today/filter'
+	import SidebarDragRegion from './sidebar-drag-region.svelte'
+	import SidebarLink from './sidebar-link.svelte'
+	import Button from './ui/button/button.svelte'
+	import * as DropdownMenu from './ui/dropdown-menu'
+	import { settingsOpen } from '@/stores/settings'
 
 	export let rep: ReplicacheType
 	export let userId: string
@@ -235,7 +231,7 @@
 
 						if (result.type === 'loaded' && result.status === 200) {
 							pushState(href, {})
-							settingsOpen = true
+							settingsOpen.set(true)
 						} else {
 							goto(href)
 						}
@@ -254,7 +250,7 @@
 </div>
 
 <Dialog.Root
-	bind:open={settingsOpen}
+	bind:open={$settingsOpen}
 	onOpenChange={open => {
 		if (!open) history.back()
 	}}

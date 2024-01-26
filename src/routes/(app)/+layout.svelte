@@ -8,6 +8,7 @@
 	import { setReplicache } from './replicache'
 
 	import { gotoOpen } from '@/stores/goto'
+	import { onDestroy } from 'svelte'
 	export let data: LayoutData
 
 	if (data.replicache) setReplicache(data.replicache)
@@ -37,11 +38,20 @@
 
 		conn.addEventListener('message', handleMessage)
 	}
+
+    // not sure this is necessary but let's make sure it's dead
+	onDestroy(() => {
+		if (conn) {
+			conn.removeEventListener('message', handleMessage)
+			conn.close()
+		}
+	})
 </script>
 
 <ModeWatcher />
 
 <!-- recreate app on userId change -->
+{#if data.replicache}
 {#key data.userId}
 	<div class="flex h-full w-full flex-row items-stretch overflow-hidden">
 		<aside class="w-60 max-sm:hidden">
@@ -57,6 +67,9 @@
 		</div>
 	</div>
 {/key}
+{:else}
+<p>Loading...</p>
+{/if}
 {#if data.replicache}
 	<Goto bind:open={$gotoOpen} rep={data.replicache} />
 {/if}

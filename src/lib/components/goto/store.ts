@@ -1,11 +1,12 @@
+import { persisted } from 'svelte-persisted-store'
 import { writable } from 'svelte/store'
-import type { ListItem, SpecialListItem } from './types'
 import { specials } from './data'
+import type { ListItem, SpecialListItem } from './types'
 
 type SpecialNames = (typeof specials)[number]['data']['name']
 
 export function createRecentsStore() {
-	const { subscribe, set, update } = writable<Array<SpecialListItem | ListItem>>([])
+	const { subscribe, set, update } = persisted<Array<SpecialListItem | ListItem>>('recents', [])
 
 	function add(item: ListItem | SpecialNames) {
 		const _item = typeof item === 'string' ? specials.find(s => s.data.name === item)! : item

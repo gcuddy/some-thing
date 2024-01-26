@@ -1,17 +1,15 @@
 <script lang="ts">
-	import * as Command from '$lib/components/ui/command'
-	import { SvelteComponent, onMount, tick, type ComponentType } from 'svelte'
-	import { type ReplicacheType } from '../../../routes/(app)/replicache'
-	import { TodoStore } from '@/data/todo'
-	import { ListStore } from '@/data/list'
-	import type { Todo } from '@/core/todo'
-	import type { List } from '@/core/list'
 	import { goto } from '$app/navigation'
-	import { Circle, Cube, ListChecks, Star, Tray } from 'phosphor-svelte'
-	import type { ListItem, SpecialListItem, TodoItem } from './types'
+	import * as Command from '$lib/components/ui/command'
+	import { ListStore } from '@/data/list'
+	import { TodoStore } from '@/data/todo'
+	import commandScore from 'command-score'
+	import { Circle, Cube, ListChecks } from 'phosphor-svelte'
+	import { onMount, tick } from 'svelte'
+	import { type ReplicacheType } from '../../../routes/(app)/replicache'
 	import { specials } from './data'
 	import { recents } from './store'
-	import commandScore from 'command-score'
+	import type { ListItem, SpecialListItem, TodoItem } from './types'
 
 	export let open = false
 	let searchValue = ''
@@ -52,7 +50,13 @@
 
 		for (const special of specials) {
 			if (!special.data.name) continue
-			const score = commandScore(special.data.name, searchValue)
+			// get max score of keywords
+			const score = special.data.keywords.reduce((acc, keyword) => {
+				const _score = commandScore(keyword, searchValue)
+				if (_score > acc) return _score
+				return acc
+			}, 0)
+			// const score = commandScore(special.data.name, searchValue)
 			if (score > 0) {
 				_lists.push({
 					type: 'special',
@@ -147,7 +151,7 @@
 
 <Command.Dialog
 	dialogClass="max-w-sm"
-	class="bg-gray-100"
+	class="bg-gray-100 dark:bg-gray-800 p-1.5"
 	bind:open
 	openFocus={null}
 	shouldFilter={false}
@@ -160,14 +164,16 @@
 	/>
 	<Command.List>
 		<Command.Empty>No results found.</Command.Empty>
-		{#if !searchValue || results.lists.length}
+		{#if (!searchValue && $recents.length) || results.lists.length}
 			<Command.Group heading={searchValue ? 'Lists' : 'Recents'}>
 				{#each !searchValue ? $recents : results.lists as list}
 					<Command.Item
 						class="aria-selected:bg-accent/50 aria-selected:text-foreground"
 						onSelect={async () => {
 							open = false
-							if ('href' in list.data) {
+							if ('fn' in list.data && list.data.fn) {
+								list.data.fn()
+							} else if ('href' in list.data) {
 								await goto(list.data.href)
 							} else {
 								await goto(`/list/${list.data.id}`)
@@ -181,13 +187,13 @@
 								class="mr-1.5 h-4 w-4 {list.data.iconClass}"
 								{...list.data.iconProps}
 							/>
-						{:else if list.data.type === "project"}
+						{:else if list.data.type === 'project'}
 							<!-- TODO: completed anduncompleted list -->
 							<Circle class="mr-1.5 h-4 w-4 text-accent" />
-                        {:else if list.data.type === "area"}
-                            <Cube class="mr-1.5 h-4 w-4 text-emerald-500" />
-                        {:else if list.data.type === "list"}
-                            <ListChecks class="mr-1.5 h-4 w-4 text-rose-400" />
+						{:else if list.data.type === 'area'}
+							<Cube class="mr-1.5 h-4 w-4 text-emerald-500" />
+						{:else if list.data.type === 'list'}
+							<ListChecks class="mr-1.5 h-4 w-4 text-rose-400" />
 						{/if}
 						{list.data.name}</Command.Item
 					>

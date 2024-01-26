@@ -13,7 +13,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		authToken: VITE_TURSO_DB_AUTH_TOKEN
 	})
 
-
 	const response = await resolve(event)
 	return response
 }

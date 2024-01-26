@@ -16,11 +16,16 @@ export type SpecialListItem = {
 	type: 'special'
 	data: {
 		name: string
+		keywords: string[]
 		icon: ComponentType
 		iconClass: string
 		iconProps: Record<string, unknown>
 		id: string
 		href: string
+		/**
+		 * If fn is present, will be used instead of href
+		 */
+		fn?: () => void
 	}
 }
 
