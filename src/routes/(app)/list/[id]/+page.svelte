@@ -70,6 +70,7 @@
 	>
 		<ListDetail slot="header" list={$list} replicache={data.replicache} />
 
+
 		<Footer
 			slot="footer"
 			on:add={() => {
