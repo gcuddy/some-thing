@@ -12,14 +12,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		url: VITE_TURSO_DB_URL,
 		authToken: VITE_TURSO_DB_AUTH_TOKEN
 	})
-	let userID = event.cookies.get('userID')
-	if (!userID) {
-		userID = crypto.randomUUID()
-		event.cookies.set('userID', userID, {
-			path: '/'
-		})
-	}
-	if (userID) event.locals.user = { id: userID }
+
 
 	const response = await resolve(event)
 	return response
