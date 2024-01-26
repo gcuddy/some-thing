@@ -61,6 +61,8 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 			.execute()
 			.then(rows => rows.at(0)!)
 
+		console.log({ group })
+
 		const oldCvr = await tx
 			.select({
 				data: replicacheCvr.data,

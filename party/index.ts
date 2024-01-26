@@ -90,12 +90,15 @@ export default class Server implements Party.Server {
 		}
 		if (req.method === 'POST') {
 			// TODO: make this more secure
+
 			const isPush = new URL(req.url).searchParams.get('push') !== null
 			const isPull = new URL(req.url).searchParams.get('pull') !== null
 			if (isPush) {
+				console.log('isPush')
 				return await this.handlePush1(req, { id: userId })
 			}
 			if (isPull) {
+				console.log('isPull')
 				return await this.handlePull1(req, { id: userId })
 			}
 

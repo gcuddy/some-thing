@@ -33,7 +33,7 @@
 
 		const conn = new PartySocket({
 			host: PARTYKIT_HOST,
-			room: 'replicache-party'
+			room: data.userId
 		})
 
 		conn.addEventListener('message', event => {

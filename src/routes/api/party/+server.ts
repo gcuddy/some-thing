@@ -13,19 +13,23 @@ export const POST: RequestHandler = async ({ fetch, url, request, cookies }) => 
 		const data = await request.json()
 		console.log({ data, url: url.toString() })
 
-		const res = await fetch(
-			`${PARTYKIT_URL}/parties/main/replicache-party?${isPush ? 'push' : 'pull'}`,
-			{
-				method: 'POST',
-				// this seems... wasteful??
-				body: JSON.stringify(data),
-				headers: {
-					// TODO: auth
-					'content-type': 'application/json',
-					'x-user-id': cookies.get('userId')
-				}
+		const userId = cookies.get('userId')
+		console.log({ userId })
+
+		if (!userId) {
+			return new Response('Unauthorized', { status: 401 })
+		}
+
+		const res = await fetch(`${PARTYKIT_URL}/parties/main/${userId}?${isPush ? 'push' : 'pull'}`, {
+			method: 'POST',
+			// this seems... wasteful??
+			body: JSON.stringify(data),
+			headers: {
+				// TODO: auth
+				'content-type': 'application/json',
+				'x-user-id': userId
 			}
-		)
+		})
 		console.log('got res', JSON.stringify(res, null, 2))
 
 		const ret = await res.json()
