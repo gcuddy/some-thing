@@ -1,6 +1,8 @@
 import { browser } from '$app/environment'
 import { createReplicache } from './replicache'
 
+export const ssr = false
+
 export async function load() {
 	console.log('load layout')
     console.log('browser', browser)
