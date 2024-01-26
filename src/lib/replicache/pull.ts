@@ -61,8 +61,6 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 			.execute()
 			.then(rows => rows.at(0)!)
 
-		console.log({ group })
-
 		const oldCvr = await tx
 			.select({
 				data: replicacheCvr.data,
@@ -77,12 +75,14 @@ export async function handlePull(db: DB, user: { id: string }, req: PullRequestV
 			)
 			.execute()
 			.then(rows => rows.at(0))
+
 		const cvr = oldCvr ?? {
 			data: {},
 			clientVersion: 0
 		}
 
 		const toPut: Record<string, { id: string; key: string }[]> = {}
+
 		const nextCvr = {
 			data: {} as Record<string, number>,
 			version: Math.max(req.cookie as number, group.cvrVersion ?? 0) + 1

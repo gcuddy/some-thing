@@ -3,7 +3,6 @@
 	import Goto from '@/components/goto/goto.svelte'
 	import { ModeWatcher } from 'mode-watcher'
 	import PartySocket from 'partysocket'
-	import { onMount } from 'svelte'
 	import type { LayoutData } from './$types'
 	import { PARTYKIT_HOST } from './env'
 	import { setReplicache } from './replicache'
@@ -11,75 +10,56 @@
 	import { gotoOpen } from '@/stores/goto'
 	export let data: LayoutData
 
-	console.log('layout', data)
-
 	if (data.replicache) setReplicache(data.replicache)
 
-	$: if (data.replicache) {
-		data.replicache.subscribe(
-			async tx => {
-				return await tx.scan().entries().toArray()
-			},
-			{
-				onData: e => {
-					console.log('onData', e)
-				}
-			}
-		)
+	let conn: PartySocket | null = null
+
+	const handleMessage = (event: MessageEvent) => {
+		console.log('message', event)
+		if (event.data === 'poke') {
+			if (!data.replicache) return
+			data.replicache.pull()
+		}
 	}
 
-	onMount(() => {
-		if (!data.replicache) return
+	// handle changing data user Id
+	$: if (data.userId) {
+		console.log('setting up party socket with user id ', data.userId)
+		if (conn) {
+			conn.removeEventListener('message', handleMessage)
+			conn.close()
+		}
 
-		const conn = new PartySocket({
+		conn = new PartySocket({
 			host: PARTYKIT_HOST,
 			room: data.userId
 		})
 
-		conn.addEventListener('message', event => {
-			console.log('message', event)
-			if (event.data === 'poke') {
-				if (!data.replicache) return
-				data.replicache.pull()
-			}
-		})
-
-		return () => {
-			conn.close()
-		}
-	})
+		conn.addEventListener('message', handleMessage)
+	}
 </script>
 
 <ModeWatcher />
 
-<div class="flex h-full w-full flex-row items-stretch overflow-hidden">
-	<aside class="w-60 max-sm:hidden">
-		{#if data.replicache}
-			{#key data.userId}
+<!-- recreate app on userId change -->
+{#key data.userId}
+	<div class="flex h-full w-full flex-row items-stretch overflow-hidden">
+		<aside class="w-60 max-sm:hidden">
+			{#if data.replicache}
 				<Sidebar userId={data.userId} rep={data.replicache} />
-			{/key}
-		{/if}
-	</aside>
+			{/if}
+		</aside>
 
-	<div class="flex min-w-0 flex-1 flex-col pt-10">
-		{#if data.replicache}
-			{#key data.userId}
+		<div class="flex min-w-0 flex-1 flex-col pt-10">
+			{#if data.replicache}
 				<slot />
-			{/key}
-		{/if}
+			{/if}
+		</div>
 	</div>
-</div>
+{/key}
 {#if data.replicache}
 	<Goto bind:open={$gotoOpen} rep={data.replicache} />
 {/if}
-<svelte:window
-	on:online={() => {
-		console.log('onlline')
-		if (data.replicache) {
-			data.replicache.pull()
-		}
-	}}
-/>
 
 <style lang="postcss">
 	:global(html) {

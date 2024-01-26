@@ -7,6 +7,7 @@
 
 	import { setMode, mode, resetMode } from 'mode-watcher'
 	import { updateReplicache } from '../../../replicache'
+	import { dropAllDatabases } from 'replicache'
 
 	const items: {
 		label: string
@@ -26,8 +27,15 @@
 		<span class="cursor-text select-text">{$page.data.userId}</span>
 	</div>
 
-	<form method="post" use:enhance action="/settings/general?/logout">
-		<Button size="sm" type="submit">Logout</Button>
+	<form
+		method="post"
+		use:enhance={async () => {
+			const dropped = await dropAllDatabases()
+			console.log({ dropped })
+		}}
+		action="/settings/general?/logout"
+	>
+		<Button size="sm" type="submit" variant="secondary">Logout</Button>
 	</form>
 </div>
 
