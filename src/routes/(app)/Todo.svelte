@@ -249,6 +249,12 @@
 		console.log('getting min index', $available)
 		return $available[0]?.index ?? 0
 	}
+
+   export function addTodo() {
+    // await rep.mutate.todo_create({
+
+    // })
+   }
 </script>
 
 <svelte:window

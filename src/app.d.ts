@@ -2,6 +2,18 @@
 
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 
+/// <reference types="lucia" />
+declare global {
+	namespace Lucia {
+		type Auth = import("$lib/server/lucia").Auth;
+		type DatabaseUserAttributes = {
+			username: string;
+		};
+		type DatabaseSessionAttributes = {};
+	}
+}
+
+
 // for information about these interfaces
 declare global {
 	namespace App {
@@ -13,7 +25,9 @@ declare global {
 				id: string
 			}
 		}
-		// interface PageData {}
+		interface PageData {
+			userId: string
+		}
 		interface PageState {
 			selected?: string
 		}

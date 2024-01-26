@@ -4,7 +4,6 @@
 	import { ModeWatcher } from 'mode-watcher'
 	import PartySocket from 'partysocket'
 	import { onMount } from 'svelte'
-	import '../../app.css'
 	import type { LayoutData } from './$types'
 	import { PARTYKIT_HOST } from './env'
 	import { setReplicache } from './replicache'
@@ -56,13 +55,17 @@
 <div class="flex h-full w-full flex-row items-stretch overflow-hidden">
 	<aside class="w-60 max-sm:hidden">
 		{#if data.replicache}
-			<Sidebar rep={data.replicache} />
+			{#key data.userId}
+				<Sidebar userId={data.userId} rep={data.replicache} />
+			{/key}
 		{/if}
 	</aside>
 
 	<div class="flex min-w-0 flex-1 flex-col pt-10">
 		{#if data.replicache}
-			<slot />
+			{#key data.userId}
+				<slot />
+			{/key}
 		{/if}
 	</div>
 </div>

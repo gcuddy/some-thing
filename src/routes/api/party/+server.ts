@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit'
 import { PARTYKIT_URL } from '../../(app)/env'
 import type { RequestHandler } from './$types'
 
-export const POST: RequestHandler = async ({ fetch, url, request }) => {
+export const POST: RequestHandler = async ({ fetch, url, request, cookies }) => {
 	// this is a proxy for partykit
 
 	// TODO: auth
@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ fetch, url, request }) => {
 				headers: {
 					// TODO: auth
 					'content-type': 'application/json',
-					'x-user-id': 'test123'
+					'x-user-id': cookies.get('userId')
 				}
 			}
 		)
