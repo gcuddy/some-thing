@@ -100,9 +100,9 @@ const mutators = new Client<ServerType>()
 	})
 	.build()
 
-export function createReplicache() {
+export function createReplicache({ userId }: { userId: string }) {
 	const replicache = new Replicache({
-		name: 'user42',
+		name: userId,
 		licenseKey: 'ld43a69e6baa14a1a85eb6bb09661739e',
 		indexes: {
 			id: {
@@ -121,6 +121,16 @@ export function createReplicache() {
 	replicache.onSync = s => syncing.set(s)
 
 	return replicache
+}
+
+export function updateReplicache(cb?: (replicache: ReplicacheType) => void) {
+	const rep = getReplicache()
+
+	if (cb) {
+		cb(rep)
+	}
+
+	rep.pull()
 }
 
 export type ReplicacheType = ReturnType<typeof createReplicache>

@@ -1,1 +1,0 @@
-ALTER TABLE lists ADD `area_id` text;

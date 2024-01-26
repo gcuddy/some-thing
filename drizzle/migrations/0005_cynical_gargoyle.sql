@@ -1,1 +1,0 @@
-ALTER TABLE lists ADD `type` text DEFAULT 'project';

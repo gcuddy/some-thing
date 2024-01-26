@@ -45,6 +45,7 @@
 	let settingsOpen = false
 
 	export let rep: ReplicacheType
+	export let userId: string
 	setContext('sidebar_selected', selected)
 
 	const lists = ListStore.list.watch(
@@ -259,7 +260,7 @@
 	}}
 >
 	<!-- Move to provider -->
-	<Dialog.Content class="p-1">
+	<Dialog.Content class="">
 		<Settings />
 	</Dialog.Content>
 </Dialog.Root>

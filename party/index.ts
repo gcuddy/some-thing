@@ -6,6 +6,8 @@ import { json, ok } from './utils'
 import { z } from 'zod'
 import { handlePull } from '../src/lib/replicache/pull'
 import { handlePush } from '../src/lib/replicache/push'
+import { users } from '../src/lib/core/user/user.sql'
+import { eq } from 'drizzle-orm'
 
 const mutationSchema = z.object({
 	clientID: z.string(),
@@ -49,6 +51,7 @@ const serverID = 1
 
 export default class Server implements Party.Server {
 	db: ReturnType<typeof createDb>
+	cachedUserIds: Set<string> = new Set()
 
 	constructor(readonly room: Party.Room) {
 		// TODO: make this better
@@ -61,6 +64,27 @@ export default class Server implements Party.Server {
 	async onRequest(req: Party.Request): Promise<Response> {
 		// cors
 
+		const userId = req.headers.get('x-user-id')
+		if (!userId) {
+			return new Response('Unauthorized', { status: 401 })
+		}
+		console.log({ userId })
+		if (!this.cachedUserIds.has(userId)) {
+			// check if userId exists, if not create it and cache it
+			const user = await this.db
+				.select()
+				.from(users)
+				.where(eq(users.id, userId))
+				.then(rows => rows.at(0))
+			// TODO: maybe cache whole user
+
+			if (!user) {
+				await this.db.insert(users).values({ id: userId })
+			}
+
+			this.cachedUserIds.add(userId)
+		}
+
 		if (req.method === 'OPTIONS') {
 			return ok()
 		}
@@ -69,10 +93,10 @@ export default class Server implements Party.Server {
 			const isPush = new URL(req.url).searchParams.get('push') !== null
 			const isPull = new URL(req.url).searchParams.get('pull') !== null
 			if (isPush) {
-				return await this.handlePush1(req)
+				return await this.handlePush1(req, { id: userId })
 			}
 			if (isPull) {
-				return await this.handlePull1(req)
+				return await this.handlePull1(req, { id: userId })
 			}
 
 			// const data = await req.json()
@@ -106,19 +130,18 @@ export default class Server implements Party.Server {
 		// 	[sender.id]
 		// )
 	}
-	async handlePush1(request: Party.Request) {
+	async handlePush1(request: Party.Request, user: { id: string }) {
 		console.log('handlePush1')
 		const push = pushRequestV1Schema.parse(await request.json())
-		const user = { id: 'anon' }
 		console.log('push', push)
 		await handlePush(this.db, user, push as PushRequestV1)
 		await this.sendPoke()
 		return new Response('{}', { status: 200 })
 	}
 
-	async handlePull1(request: Party.Request) {
+	async handlePull1(request: Party.Request, user: { id: string }) {
 		const pull = pullRequestV1.parse(await request.json())
-		const user = { id: 'anon' }
+		// const user = { id: 'anon' }
 
 		const resp = await handlePull(this.db, user, pull)
 

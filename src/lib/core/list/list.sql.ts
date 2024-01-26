@@ -1,11 +1,11 @@
 import { id, timestamps } from '../../util/sql'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import { user } from '../todo/todo.sql'
+import { users } from '../user/user.sql'
 
 export const lists = sqliteTable('lists', {
 	...timestamps,
 	...id,
-	userId: text('user_id').references(() => user.id),
+	userId: text('user_id').references(() => users.id),
 	name: text('name'),
 	notes: text('notes'),
 	index: integer('index').default(0),

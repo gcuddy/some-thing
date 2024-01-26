@@ -7,11 +7,16 @@
 	import type { Snapshot } from './$types'
 	import { filterFn } from './filter'
 	import { Star } from 'phosphor-svelte'
-	const rep = getContext('__replicache') as Replicache
+	import type { ReplicacheType } from '../replicache'
+	import * as Dialog from '@/components/ui/dialog'
+	import NewTodo from '@/components/new-todo.svelte'
+	import Footer from '@/components/footer.svelte'
+
+	const rep = getContext('__replicache') as ReplicacheType
 	console.log({ rep })
 
 	let todo: Todo
-
+	let newTodoOpen = false
 	export const snapshot: Snapshot = {
 		capture: () => todo.snapshot.capture(),
 		restore: data => todo.snapshot.restore(data)
@@ -30,5 +35,30 @@
 				<h1 class="text-2xl font-semibold tracking-tight">Today</h1>
 			</div>
 		</div>
+		<Footer
+			slot="footer"
+			on:add={() => {
+				newTodoOpen = true
+			}}
+		></Footer>
 	</Todo>
+	<Dialog.Root openFocus={'[data-todo-input]'} bind:open={newTodoOpen}>
+		<Dialog.Overlay />
+		<Dialog.Content>
+			<NewTodo
+				on:submit={async ({ detail }) => {
+					newTodoOpen = false
+					let sortIndex = -100
+					if (todo) {
+						sortIndex = todo.getMinIndex() - 100
+					}
+					console.log({ sortIndex })
+					await rep?.mutate.todo_create({
+						...detail,
+						index: sortIndex
+					})
+				}}
+			/>
+		</Dialog.Content>
+	</Dialog.Root>
 </div>

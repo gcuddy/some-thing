@@ -1,1 +1,0 @@
-ALTER TABLE todos ADD `index` integer DEFAULT 0;

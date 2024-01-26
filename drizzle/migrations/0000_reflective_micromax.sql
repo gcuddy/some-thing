@@ -1,3 +1,18 @@
+CREATE TABLE `lists` (
+	`time_created` integer DEFAULT (strftime('%s', 'now')) NOT NULL,
+	`time_updated` integer DEFAULT (strftime('%s', 'now')) NOT NULL,
+	`time_deleted` integer,
+	`id` text(16) PRIMARY KEY NOT NULL,
+	`user_id` text,
+	`name` text,
+	`notes` text,
+	`index` integer DEFAULT 0,
+	`area_id` text,
+	`type` text DEFAULT 'project',
+	`shared` text DEFAULT 'private',
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `replicache_client` (
 	`time_created` integer DEFAULT (strftime('%s', 'now')) NOT NULL,
 	`time_updated` integer DEFAULT (strftime('%s', 'now')) NOT NULL,
@@ -43,11 +58,21 @@ CREATE TABLE `todos` (
 	`completed` integer,
 	`archived_at` integer,
 	`notes` text,
+	`index` integer DEFAULT 0,
+	`start_date` integer,
 	`user_id` text NOT NULL,
 	`version` integer,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
+	`list_id` text,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`list_id`) REFERENCES `lists`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `user` (
-	`id` text PRIMARY KEY NOT NULL
+CREATE TABLE `users` (
+	`id` text(16) PRIMARY KEY NOT NULL,
+	`time_created` integer DEFAULT (strftime('%s', 'now')) NOT NULL,
+	`time_updated` integer DEFAULT (strftime('%s', 'now')) NOT NULL,
+	`time_deleted` integer,
+	`email` text
 );
+--> statement-breakpoint
+CREATE UNIQUE INDEX `email` ON `users` (`email`);
