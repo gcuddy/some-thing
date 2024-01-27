@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import { cn, flyAndScale } from "$lib/util/style";
+	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui'
+	import { cn, flyAndScale } from '$lib/util/style'
 
-	type $$Props = DropdownMenuPrimitive.ContentProps;
+	type $$Props = DropdownMenuPrimitive.ContentProps
 
-	let className: $$Props["class"] = undefined;
-	export let sideOffset: $$Props["sideOffset"] = 4;
-	export let transition: $$Props["transition"] = flyAndScale;
-	export let transitionConfig: $$Props["transitionConfig"] = undefined;
-	export { className as class };
+	let className: $$Props['class'] = undefined
+	export let sideOffset: $$Props['sideOffset'] = 4
+	export let transition: $$Props['transition'] = flyAndScale
+	export let transitionConfig: $$Props['transitionConfig'] = undefined
+	export { className as class }
 </script>
 
 <DropdownMenuPrimitive.Content
@@ -16,7 +16,7 @@
 	{transitionConfig}
 	{sideOffset}
 	class={cn(
-		"z-50 min-w-[8rem] rounded-lg border bg-popover p-1 text-popover-foreground shadow-md focus:outline-none",
+		'z-50 min-w-[8rem] rounded-lg border bg-popover p-1 text-popover-foreground shadow-md focus:outline-none',
 		className
 	)}
 	{...$$restProps}

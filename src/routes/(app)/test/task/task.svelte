@@ -32,7 +32,6 @@
 		boxShadow: open ? '0 0 0 2px rgba(0, 0, 0, 0.1)' : undefined
 		// scale: open ? 1.05 : 1,
 	}}
-
 >
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -49,7 +48,7 @@
 			selected = true
 		}}
 	>
-		<Motion layout let:motion={m1} >
+		<Motion layout let:motion={m1}>
 			<div use:m1 class="flex w-full items-center gap-2">
 				<input type="checkbox" />
 				{#if open}
@@ -65,7 +64,6 @@
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
-
 				let:motion={m2}
 			>
 				<div use:m2 class="flex resize-none flex-col">

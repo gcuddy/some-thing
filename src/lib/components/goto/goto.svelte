@@ -151,7 +151,7 @@
 
 <Command.Dialog
 	dialogClass="max-w-sm"
-	class="bg-gray-100 dark:bg-gray-800 p-1.5"
+	class="bg-gray-100 p-1.5 dark:bg-gray-800"
 	bind:open
 	openFocus={null}
 	shouldFilter={false}

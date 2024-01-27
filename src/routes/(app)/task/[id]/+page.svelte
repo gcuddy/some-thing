@@ -214,7 +214,12 @@
 						bind:open={isDatePickerOpen}
 					>
 						{#if !$s?.startDate}
-							<div class={cn("flex items-center gap-1 p-1 rounded hover:bg-secondary", isDatePickerOpen && "bg-secondary")}>
+							<div
+								class={cn(
+									'flex items-center gap-1 rounded p-1 hover:bg-secondary',
+									isDatePickerOpen && 'bg-secondary'
+								)}
+							>
 								<CalendarPlus class="h-4 w-4 text-muted-foreground" />
 								<span class="text-xs text-muted-foreground">When</span>
 							</div>

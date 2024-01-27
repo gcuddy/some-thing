@@ -33,9 +33,9 @@
 	<Todo bind:this={todo}>
 		<div slot="header">
 			<div class="flex items-center gap-2">
-                <Tray class="h-6 w-6 text-blue-400" weight="duotone" />
-                <span class="text-2xl font-semibold tracking-tight"> Inbox </span>
-            </div>
+				<Tray class="h-6 w-6 text-blue-400" weight="duotone" />
+				<span class="text-2xl font-semibold tracking-tight"> Inbox </span>
+			</div>
 		</div>
 		<Footer
 			slot="footer"

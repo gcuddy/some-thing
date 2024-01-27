@@ -1,20 +1,20 @@
 {
-  "version": "5",
-  "dialect": "sqlite",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "5",
-      "when": 1706283566083,
-      "tag": "0000_reflective_micromax",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1706285536268,
-      "tag": "0001_fluffy_maria_hill",
-      "breakpoints": true
-    }
-  ]
+	"version": "5",
+	"dialect": "sqlite",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "5",
+			"when": 1706283566083,
+			"tag": "0000_reflective_micromax",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "5",
+			"when": 1706285536268,
+			"tag": "0001_fluffy_maria_hill",
+			"breakpoints": true
+		}
+	]
 }

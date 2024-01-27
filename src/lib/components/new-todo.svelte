@@ -4,7 +4,7 @@
 
 <TodoDetail
 	on:submit
-    autofocus
+	autofocus
 	todo={{
 		completed: null,
 		notes: '',

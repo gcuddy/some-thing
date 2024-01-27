@@ -8,9 +8,9 @@
 	export let quickFind = true
 </script>
 
-<div class="flex mx-auto h-9 max-w-screen-lg items-center justify-center">
+<div class="mx-auto flex h-9 max-w-screen-lg items-center justify-center">
 	<Button
-        class="grow"
+		class="grow"
 		variant="ghostOutline"
 		on:click={() => {
 			dispatch('add')
@@ -22,7 +22,7 @@
 
 	{#if quickFind}
 		<Button
-            class="grow"
+			class="grow"
 			variant="ghostOutline"
 			on:click={() => {
 				gotoOpen.set(true)

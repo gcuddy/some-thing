@@ -5,14 +5,13 @@ import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 /// <reference types="lucia" />
 declare global {
 	namespace Lucia {
-		type Auth = import("$lib/server/lucia").Auth;
+		type Auth = import('$lib/server/lucia').Auth
 		type DatabaseUserAttributes = {
-			username: string;
-		};
-		type DatabaseSessionAttributes = {};
+			username: string
+		}
+		type DatabaseSessionAttributes = {}
 	}
 }
-
 
 // for information about these interfaces
 declare global {

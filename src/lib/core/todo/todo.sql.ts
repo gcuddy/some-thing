@@ -31,4 +31,3 @@ export const todos = sqliteTable('todos', {
 
 	listId: text('list_id').references(() => lists.id)
 })
-

@@ -10,7 +10,7 @@ export const List = createSelectSchema(lists, {})
 export type List = typeof lists.$inferSelect
 
 export const create = zod(List.partial().required({ name: true }), async data => {
-   console.log('create list', { data })
+	console.log('create list', { data })
 	return useTransaction(tx =>
 		tx.insert(lists).values({
 			...data,

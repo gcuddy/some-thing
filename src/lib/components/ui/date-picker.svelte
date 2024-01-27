@@ -522,7 +522,7 @@
 										searchValue = ''
 									})
 								}}
-								class="font-medium py-1"
+								class="py-1 font-medium"
 							>
 								<svelte:component
 									this={result.icon}
@@ -583,7 +583,7 @@
 			</div>
 			<div bind:this={calendarWrapper} class="rounded-md">
 				<Calendar
-                    class="p-1 pt-0"
+					class="p-1 pt-0"
 					on:keydown={event => {
 						//@ts-expect-error - types are wrong
 						handleCalendarEvent(event)
@@ -600,8 +600,8 @@
 				/>
 			</div>
 			<Button
-                class="dark:bg-gray-800"
-                variant="secondary"
+				class="dark:bg-gray-800"
+				variant="secondary"
 				on:click={() => {
 					value = undefined
 					open = false

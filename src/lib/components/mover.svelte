@@ -47,7 +47,7 @@
 			<Command.Group class="py-1.5 text-popover-foreground">
 				{#each results as list}
 					<Command.Item
-                        class="aria-selected:text-white"
+						class="aria-selected:text-white"
 						onSelect={async () => {
 							console.log('HELLO???', ids)
 							await rep.mutate.todo_update({
@@ -71,7 +71,7 @@
 			{/if}
 			<Command.Group class="!py-1.5 ">
 				<Command.Item
-                    class="text-white aria-selected:text-white group"
+					class="group text-white aria-selected:text-white"
 					onSelect={async () => {
 						const id = createId()
 						await rep.mutate.list_create({

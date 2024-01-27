@@ -1,6 +1,6 @@
 {
-  "$schema": "https://www.partykit.io/schema.json",
-  "name": "replicache-sk-party",
-  "main": "party/index.ts",
-  "compatibilityDate": "2024-01-19"
+	"$schema": "https://www.partykit.io/schema.json",
+	"name": "replicache-sk-party",
+	"main": "party/index.ts",
+	"compatibilityDate": "2024-01-19"
 }

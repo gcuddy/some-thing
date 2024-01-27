@@ -39,7 +39,7 @@
 		conn.addEventListener('message', handleMessage)
 	}
 
-    // not sure this is necessary but let's make sure it's dead
+	// not sure this is necessary but let's make sure it's dead
 	onDestroy(() => {
 		if (conn) {
 			conn.removeEventListener('message', handleMessage)
@@ -52,23 +52,23 @@
 
 <!-- recreate app on userId change -->
 {#if data.replicache}
-{#key data.userId}
-	<div class="flex h-full w-full flex-row items-stretch overflow-hidden">
-		<aside class="w-60 max-sm:hidden">
-			{#if data.replicache}
-				<Sidebar rep={data.replicache} />
-			{/if}
-		</aside>
+	{#key data.userId}
+		<div class="flex h-full w-full flex-row items-stretch overflow-hidden">
+			<aside class="w-60 max-sm:hidden">
+				{#if data.replicache}
+					<Sidebar rep={data.replicache} />
+				{/if}
+			</aside>
 
-		<div class="flex min-w-0 flex-1 flex-col pt-10">
-			{#if data.replicache}
-				<slot />
-			{/if}
+			<div class="flex min-w-0 flex-1 flex-col pt-10">
+				{#if data.replicache}
+					<slot />
+				{/if}
+			</div>
 		</div>
-	</div>
-{/key}
+	{/key}
 {:else}
-<p>Loading...</p>
+	<p>Loading...</p>
 {/if}
 {#if data.replicache}
 	<Goto bind:open={$gotoOpen} rep={data.replicache} />
