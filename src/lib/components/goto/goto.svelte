@@ -168,7 +168,7 @@
 			<Command.Group heading={searchValue ? 'Lists' : 'Recents'}>
 				{#each !searchValue ? $recents : results.lists as list}
 					<Command.Item
-						class="aria-selected:bg-accent/50 aria-selected:text-foreground"
+						class="aria-selected:bg-accent/75 aria-selected:text-foreground"
 						onSelect={async () => {
 							open = false
 							if ('fn' in list.data && list.data.fn) {
@@ -214,7 +214,7 @@
 								goto(`/task/${todo.data.id}`)
 							}
 						}}
-						class="aria-selected:bg-accent/50 aria-selected:text-foreground"
+						class="aria-selected:bg-accent/75 aria-selected:text-foreground"
 						value={todo.data.id}
 					>
 						<!-- dummy checkbox -->

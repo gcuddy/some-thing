@@ -507,14 +507,14 @@
 				<Command.Input
 					placeholder="When"
 					class={cn(
-						'flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50'
+						'flex h-7 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50'
 					)}
 					wrapperClass="border-0"
 					autofocus
 					bind:value={searchValue}
 				/>
 				<Command.List>
-					<Command.Group>
+					<Command.Group class="p-0 pt-1.5">
 						{#each handleSearch(searchValue) as result}
 							<Command.Item
 								value={result.date.toString()}
@@ -526,7 +526,7 @@
 										searchValue = ''
 									})
 								}}
-								class="font-medium"
+								class="font-medium py-1"
 							>
 								<svelte:component
 									this={result.icon}
@@ -566,7 +566,7 @@
 						open = false
 						onChange(value?.toDate(getLocalTimeZone()))
 					}}
-					class="inline-flex items-center rounded p-1 text-sm font-medium hover:bg-accent focus:bg-accent focus-visible:outline-none"
+					class="inline-flex items-center rounded p-1 text-sm font-medium hover:bg-accent/75 focus:bg-accent/75 focus-visible:outline-none"
 				>
 					<Star weight="fill" class="mr-1.5 h-4 w-4 text-yellow-400" />
 					Today</button
@@ -579,7 +579,7 @@
 					}}
 					data-button-tomorrow
 					bind:this={tomorrowButton}
-					class="group inline-flex items-center rounded p-1 text-sm font-medium hover:bg-accent focus:bg-accent focus-visible:outline-none"
+					class="group inline-flex items-center rounded p-1 text-sm font-medium hover:bg-accent/75 focus:bg-accent/75 focus-visible:outline-none"
 				>
 					<CalendarIcon weight="fill" class="mr-1.5 h-4 w-4 text-red-400 group-focus:text-white" />
 					Tomorrow</button
@@ -587,6 +587,7 @@
 			</div>
 			<div bind:this={calendarWrapper} class="rounded-md">
 				<Calendar
+                    class="p-1 pt-0"
 					on:keydown={event => {
 						//@ts-expect-error - types are wrong
 						handleCalendarEvent(event)
@@ -603,6 +604,8 @@
 				/>
 			</div>
 			<Button
+                class="dark:bg-gray-800"
+                variant="secondary"
 				on:click={() => {
 					value = undefined
 					open = false
