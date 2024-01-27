@@ -47,6 +47,7 @@
 >
 	<div class="flex w-full grow items-start gap-2.5 overflow-auto rounded p-4">
 		<label class="sr-only" for="completed"> Completed </label>
+		<!-- svelte-ignore a11y-autofocus -->
 		<input
 			{autofocus}
 			type="checkbox"

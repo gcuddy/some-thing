@@ -56,7 +56,7 @@
 	<div class="flex h-full w-full flex-row items-stretch overflow-hidden">
 		<aside class="w-60 max-sm:hidden">
 			{#if data.replicache}
-				<Sidebar userId={data.userId} rep={data.replicache} />
+				<Sidebar rep={data.replicache} />
 			{/if}
 		</aside>
 

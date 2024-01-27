@@ -1,24 +1,20 @@
 <script lang="ts">
-	import * as Popover from '$lib/components/ui/popover'
 	import { Calendar } from '$lib/components/ui/calendar'
 	import * as Command from '$lib/components/ui/command'
-	import { Command as CommandPrimitive } from 'cmdk-sv'
+	import * as Popover from '$lib/components/ui/popover'
 
-	import {
-		type DateValue,
-		DateFormatter,
-		getLocalTimeZone,
-		CalendarDate,
-		today,
-		getDayOfWeek,
-		parseDate,
-		parseZonedDateTime
-	} from '@internationalized/date'
-	import { Button } from './button'
 	import { cn } from '@/util/style'
-	import { Star, Calendar as CalendarIcon, CalendarPlus } from 'phosphor-svelte'
-	import { tick, type ComponentType, type ComponentProps, SvelteComponent } from 'svelte'
-	import { toDate } from '@melt-ui/svelte/internal/helpers/date'
+	import {
+		DateFormatter,
+		getDayOfWeek,
+		getLocalTimeZone,
+		parseZonedDateTime,
+		today,
+		type DateValue
+	} from '@internationalized/date'
+	import { Calendar as CalendarIcon, CalendarPlus, Star } from 'phosphor-svelte'
+	import { SvelteComponent, tick, type ComponentProps, type ComponentType } from 'svelte'
+	import { Button } from './button'
 	export let locale = 'en-US'
 	const df = new DateFormatter(locale, {
 		dateStyle: 'short'

@@ -41,7 +41,6 @@
 	import { settingsOpen } from '@/stores/settings'
 
 	export let rep: ReplicacheType
-	export let userId: string
 	setContext('sidebar_selected', selected)
 
 	const lists = ListStore.list.watch(
